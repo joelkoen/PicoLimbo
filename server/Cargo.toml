@@ -7,4 +7,5 @@ edition = "2021"
 tokio = { version = "1.42", features = ["rt", "rt-multi-thread", "macros", "net", "io-util"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-packet = { path = "../packet" }
+protocol = { path = "../protocol/protocol" }
+thiserror = "2.0.4"

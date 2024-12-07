@@ -1,39 +1,41 @@
-use tokio::io::AsyncReadExt;
+mod client;
+mod get_packet_length;
+mod packets;
+mod payload;
+mod state;
+
+use crate::client::Client;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, Level};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
-use packet::ParsePacket;
-
-#[derive(Debug, ParsePacket)]
-pub struct HandshakePacket {
-    pub protocol: i32,
-    pub hostname: String,
-    pub port: u16,
-    pub next_state: i32,
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     enable_logging(2);
-    let addr = "127.0.0.0:25565";
+    let addr = "0.0.0.0:25565";
     let listener = TcpListener::bind(&addr).await?;
-    info!("Listening on: {}", addr);
+    info!("listening on: {}", addr);
 
-    while let Ok((mut inbound, address)) = listener.accept().await {
-        debug!("Accepted new client {}:{}", address.ip(), address.port());
+    while let Ok((inbound, address)) = listener.accept().await {
+        debug!("accepted new client {}:{}", address.ip(), address.port());
+        let mut client = Client::new(inbound, address);
 
         tokio::spawn(async move {
-            let mut buf = vec![0; 16_384];
+            loop {
+                if let Err(err) = client.read_socket().await {
+                    error!("{err}");
+                    return;
+                }
 
-            let bytes_received = inbound.read(&mut buf).await;
-
-            if let Ok(bytes_received) = bytes_received {
-                debug!("Received {} bytes", bytes_received);
-            } else {
-                error!("Failed to read from socket");
+                // Once the payload is complete, we can break the loop to parse the packet
+                if client.is_complete() {
+                    if let Err(err) = client.handle().and_then(|_| Ok(client.reset_payload()?)) {
+                        error!("{err}");
+                        break;
+                    }
+                }
             }
         });
     }

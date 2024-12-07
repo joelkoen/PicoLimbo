@@ -1,12 +1,9 @@
-mod data_types;
-mod parse;
-
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
-#[proc_macro_derive(ParsePacket)]
+#[proc_macro_derive(Packet)]
 pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
@@ -25,7 +22,7 @@ pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
         let field_name = &field.ident;
         let field_type = &field.ty;
         quote! {
-            let #field_name = <#field_type as crate::parse::Parse>::parse(bytes, index)?;
+            let #field_name = <#field_type as parse::Parse>::parse(bytes, &mut index)?;
         }
     });
 
@@ -38,7 +35,8 @@ pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl #name {
-            pub fn parse(bytes: &[u8], index: &mut usize) -> Result<Self, Box<dyn std::error::Error>> {
+            pub fn parse(bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
+                let mut index = 0;
                 #(#field_parsers)*
 
                 Ok(Self {
