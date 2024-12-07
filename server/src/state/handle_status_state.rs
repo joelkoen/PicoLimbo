@@ -1,6 +1,7 @@
 use crate::client::ClientReadError;
 use crate::packets::status::ping_request_packet::PingRequestPacket;
 use crate::packets::status::status_request_packet::StatusRequestPacket;
+use crate::state::State;
 use protocol::prelude::{DecodePacket, PacketId};
 
 pub enum StatusResult {
@@ -21,6 +22,9 @@ pub fn handle_status_state(
             let packet = PingRequestPacket::decode(payload)?;
             Ok(StatusResult::Ping(packet.timestamp))
         }
-        _ => Err(Box::new(ClientReadError::UnknownPacket(packet_id))),
+        _ => Err(Box::new(ClientReadError::UnknownPacket(
+            State::Status,
+            packet_id,
+        ))),
     }
 }

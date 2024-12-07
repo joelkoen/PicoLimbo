@@ -1,6 +1,7 @@
 use crate::client::ClientReadError;
 use crate::packets::login::login_acknowledged_packet::LoginAcknowledgedPacket;
 use crate::packets::login::login_state_packet::LoginStartPacket;
+use crate::state::State;
 use protocol::prelude::{DecodePacket, PacketId, Uuid};
 
 pub enum LoginResult {
@@ -21,6 +22,9 @@ pub fn handle_login_state(
             LoginAcknowledgedPacket::decode(payload)?;
             Ok(LoginResult::LoginAcknowledged)
         }
-        _ => Err(Box::new(ClientReadError::UnknownPacket(packet_id))),
+        _ => Err(Box::new(ClientReadError::UnknownPacket(
+            State::Login,
+            packet_id,
+        ))),
     }
 }

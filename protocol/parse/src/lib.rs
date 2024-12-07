@@ -5,6 +5,7 @@ mod traits;
 mod var_int;
 
 pub mod prelude {
+    pub use crate::data_types::identifier::Identifier;
     pub use crate::deserialize_packet::DeserializePacketData;
     pub use crate::serialize_packet::SerializePacketData;
     pub use crate::traits::decode_packet::DecodePacket;

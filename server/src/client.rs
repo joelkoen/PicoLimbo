@@ -1,19 +1,21 @@
+use crate::packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
 use crate::packets::login::login_success_packet::LoginSuccessPacket;
 use crate::packets::status::ping_response_packet::PingResponsePacket;
 use crate::packets::status::status_response::StatusResponse;
 use crate::packets::status::status_response_packet::StatusResponsePacket;
 use crate::payload::{Payload, PayloadAppendError};
+use crate::state::handle_configuration_state::{handle_configuration_state, ConfigurationResult};
 use crate::state::handle_handshake_state::handle_handshake_state;
 use crate::state::handle_login_state::{handle_login_state, LoginResult};
 use crate::state::handle_status_state::{handle_status_state, StatusResult};
-use crate::state::state::State;
+use crate::state::State;
 use protocol::prelude::{EncodePacket, PacketId, SerializePacketData, VarInt};
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::error;
+use tracing::{error, info};
 
 pub struct Client {
     socket: TcpStream,
@@ -30,8 +32,8 @@ pub enum ClientReadError {
     NoBytesReceived,
     #[error("failed to read socket; error={0}")]
     FailedToRead(std::io::Error),
-    #[error("unknown packet received; packet_id=0x{0:02x}")]
-    UnknownPacket(u8),
+    #[error("unknown packet received; state={0}, packet_id=0x{1:02x}")]
+    UnknownPacket(State, u8),
     #[error("state not supported {0}")]
     NotSupportedState(State),
 }
@@ -130,9 +132,25 @@ impl Client {
                 }
                 Ok(())
             }
-            State::Configuration => Err(Box::new(ClientReadError::NotSupportedState(
-                State::Configuration,
-            ))),
+            State::Configuration => {
+                let result = handle_configuration_state(packet_id, packet_payload)?;
+                match result {
+                    ConfigurationResult::Play => {
+                        self.update_state(State::Play);
+                        Ok(())
+                    }
+                    ConfigurationResult::Brand(brand) => {
+                        info!("Client brand: {}", brand);
+                        Ok(())
+                    }
+                    ConfigurationResult::ClientInformation => {
+                        let packet = FinishConfigurationPacket {};
+                        self.write_packet(packet).await?;
+                        Ok(())
+                    }
+                }
+            }
+            State::Play => Err(Box::new(ClientReadError::NotSupportedState(State::Play))),
             State::Transfer => Err(Box::new(ClientReadError::NotSupportedState(
                 State::Transfer,
             ))),

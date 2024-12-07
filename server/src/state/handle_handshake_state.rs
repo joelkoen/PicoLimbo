@@ -1,6 +1,6 @@
 use crate::client::ClientReadError;
 use crate::packets::handshaking::handshake_packet::HandshakePacket;
-use crate::state::state::State;
+use crate::state::State;
 use protocol::prelude::{DecodePacket, PacketId};
 
 /// Returns the next state
@@ -13,6 +13,9 @@ pub fn handle_handshake_state(
             let packet = HandshakePacket::decode(payload)?;
             Ok(packet.get_next_state()?)
         }
-        _ => Err(Box::new(ClientReadError::UnknownPacket(packet_id))),
+        _ => Err(Box::new(ClientReadError::UnknownPacket(
+            State::Handshake,
+            packet_id,
+        ))),
     }
 }

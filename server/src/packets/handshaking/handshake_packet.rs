@@ -1,4 +1,4 @@
-use crate::state::state::State;
+use crate::state::State;
 use protocol::prelude::*;
 use thiserror::Error;
 
