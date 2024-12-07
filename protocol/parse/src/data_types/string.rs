@@ -1,3 +1,4 @@
+use crate::prelude::DeserializePacketData;
 use crate::var_int::{CONTINUE_BIT, VarInt};
 use std::error::Error;
 use thiserror::Error;
@@ -7,7 +8,7 @@ use thiserror::Error;
 pub struct InvalidStringSizeError;
 
 pub fn read_string(bytes: &[u8], index: &mut usize) -> Result<String, Box<dyn Error>> {
-    let length = VarInt::parse(bytes, index)?.value() as usize;
+    let length = VarInt::decode(bytes, index)?.value() as usize;
 
     if length > 255 {
         return Err(Box::new(InvalidStringSizeError));

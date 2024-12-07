@@ -1,7 +1,6 @@
-use protocol::parse::VarInt;
-use protocol::*;
+use protocol::prelude::*;
 
-#[derive(Debug, Packet)]
+#[derive(Debug, PacketIn)]
 pub struct HandshakePacket {
     pub protocol: VarInt,
     pub hostname: String,

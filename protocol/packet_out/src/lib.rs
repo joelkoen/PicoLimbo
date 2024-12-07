@@ -3,7 +3,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
-#[proc_macro_derive(Packet)]
+#[proc_macro_derive(PacketOut)]
 pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
@@ -20,28 +20,17 @@ pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
 
     let field_parsers = fields.iter().map(|field| {
         let field_name = &field.ident;
-        let field_type = &field.ty;
         quote! {
-            let #field_name = <#field_type as parse::Parse>::parse(bytes, &mut index)?;
-        }
-    });
-
-    let field_initializers = fields.iter().map(|field| {
-        let field_name = &field.ident;
-        quote! {
-            #field_name,
+            self.#field_name.encode(&mut bytes)?;
         }
     });
 
     let expanded = quote! {
-        impl #name {
-            pub fn parse(bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
-                let mut index = 0;
+        impl EncodePacket for #name {
+            fn encode(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+                let mut bytes = Vec::new();
                 #(#field_parsers)*
-
-                Ok(Self {
-                    #(#field_initializers)*
-                })
+                Ok(bytes)
             }
         }
     };

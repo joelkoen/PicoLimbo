@@ -1,28 +1,14 @@
-pub use crate::var_int::{VarInt, VarIntParseError};
-
 mod data_types;
+mod deserialize_packet;
+mod serialize_packet;
+mod traits;
 mod var_int;
 
-pub trait Parse: Sized {
-    fn parse(bytes: &[u8], index: &mut usize) -> Result<Self, Box<dyn std::error::Error>>;
-}
-
-impl Parse for VarInt {
-    fn parse(bytes: &[u8], index: &mut usize) -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(VarInt::parse(bytes, index)?)
-    }
-}
-
-impl Parse for String {
-    fn parse(bytes: &[u8], index: &mut usize) -> Result<Self, Box<dyn std::error::Error>> {
-        data_types::string::read_string(bytes, index)
-    }
-}
-
-impl Parse for u16 {
-    fn parse(bytes: &[u8], index: &mut usize) -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(data_types::unsigned_short::read_unsigned_short(
-            bytes, index,
-        ))
-    }
+pub mod prelude {
+    pub use crate::deserialize_packet::DeserializePacketData;
+    pub use crate::serialize_packet::SerializePacketData;
+    pub use crate::traits::decode_packet::DecodePacket;
+    pub use crate::traits::encode_packet::EncodePacket;
+    pub use crate::var_int::{VarInt, VarIntParseError};
+    pub use uuid::Uuid;
 }

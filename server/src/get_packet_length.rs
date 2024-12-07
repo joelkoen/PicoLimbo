@@ -1,13 +1,13 @@
-use protocol::parse::{VarInt, VarIntParseError};
+use protocol::prelude::{VarInt, VarIntParseError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum PacketLengthParseError {
-    #[error("could not parse the var int, the length might be incomplete")]
+    #[error("could not deserialize_packet the var int, the length might be incomplete")]
     IncompleteLength,
-    #[error("packet length cannot be negative")]
+    #[error("packet_in length cannot be negative")]
     NegativeLength,
-    #[error("packet length is too large")]
+    #[error("packet_in length is too large")]
     PacketTooLarge,
 }
 

@@ -54,10 +54,10 @@ impl VarInt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::prelude::{DeserializePacketData, SerializePacketData};
 
-    #[test]
-    fn test_read_var_int() {
-        let test_cases = vec![
+    fn get_test_cases() -> Vec<(Vec<u8>, i32)> {
+        vec![
             (vec![0x00], 0),
             (vec![0x01], 1),
             (vec![0x02], 2),
@@ -69,12 +69,28 @@ mod tests {
             (vec![0xff, 0xff, 0xff, 0xff, 0x07], 2147483647),
             (vec![0xff, 0xff, 0xff, 0xff, 0x0f], -1),
             (vec![0x80, 0x80, 0x80, 0x80, 0x08], -2147483648),
-        ];
+        ]
+    }
+
+    #[test]
+    fn test_read_var_int() {
+        let test_cases = get_test_cases();
 
         for (bytes, expected) in test_cases {
             let mut index = 0;
-            let result = VarInt::parse(&bytes, &mut index);
+            let result = VarInt::decode(&bytes, &mut index);
             assert_eq!(result.unwrap().value(), expected);
+        }
+    }
+
+    #[test]
+    fn test_encode_var_int() {
+        let test_cases = get_test_cases();
+
+        for (expected_bytes, value) in test_cases {
+            let mut bytes = Vec::new();
+            VarInt::new(value).encode(&mut bytes).unwrap();
+            assert_eq!(bytes, expected_bytes);
         }
     }
 }

@@ -29,9 +29,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return;
                 }
 
-                // Once the payload is complete, we can break the loop to parse the packet
+                // Once the payload is complete, we can break the loop to deserialize_packet the packet_in
                 if client.is_complete() {
-                    if let Err(err) = client.handle().and_then(|_| Ok(client.reset_payload()?)) {
+                    if let Err(err) = client
+                        .handle()
+                        .await
+                        .and_then(|_| Ok(client.reset_payload()?))
+                    {
                         error!("{err}");
                         break;
                     }

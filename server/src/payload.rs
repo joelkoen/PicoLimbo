@@ -1,6 +1,5 @@
 use crate::get_packet_length::{get_packet_length, PacketLengthParseError};
 use thiserror::Error;
-use tracing::trace;
 
 pub struct Payload {
     expected_length: Option<usize>,
@@ -11,7 +10,7 @@ pub struct Payload {
 
 #[derive(Error, Debug, PartialEq)]
 pub enum PayloadAppendError {
-    #[error("packet length is invalid")]
+    #[error("packet_in length is invalid")]
     InvalidPacketLength,
 }
 
@@ -109,14 +108,6 @@ impl Payload {
     fn get_expected_length(&self) -> usize {
         self.expected_length.unwrap_or(0)
     }
-}
-
-fn print_bytes_hex(bytes: &[u8], length: usize) -> String {
-    bytes[..length]
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect::<Vec<_>>()
-        .join(" ")
 }
 
 #[cfg(test)]
