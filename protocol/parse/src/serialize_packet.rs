@@ -1,6 +1,6 @@
-use crate::prelude::VarInt;
+use crate::prelude::{EncodePacket, VarInt};
 use crate::var_int::{CONTINUE_BIT, SEGMENT_BITS};
-use std::io::Write;
+use uuid::Uuid;
 
 pub trait SerializePacketData: Sized {
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>>;
@@ -35,6 +35,43 @@ impl SerializePacketData for String {
 impl SerializePacketData for i64 {
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
         bytes.extend_from_slice(&self.to_be_bytes());
+        Ok(())
+    }
+}
+
+impl SerializePacketData for Uuid {
+    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        bytes.extend_from_slice(self.as_bytes());
+        Ok(())
+    }
+}
+
+impl SerializePacketData for bool {
+    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        bytes.push(if *self { 0x01 } else { 0x00 });
+        Ok(())
+    }
+}
+
+impl<T: EncodePacket> SerializePacketData for T {
+    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        self.encode()?.iter().for_each(|byte| bytes.push(*byte));
+        Ok(())
+    }
+}
+
+impl<T: SerializePacketData> SerializePacketData for Option<T> {
+    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(value) = self {
+            value.encode(bytes)?
+        }
+        Ok(())
+    }
+}
+
+impl<T: SerializePacketData> SerializePacketData for Vec<T> {
+    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        self.iter().for_each(|value| value.encode(bytes).unwrap());
         Ok(())
     }
 }

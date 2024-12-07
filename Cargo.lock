@@ -161,6 +161,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
+name = "packet_id_macro"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "packet_in"
 version = "0.1.0"
 dependencies = [
@@ -203,6 +211,7 @@ dependencies = [
 name = "protocol"
 version = "0.1.0"
 dependencies = [
+ "packet_id_macro",
  "packet_in",
  "packet_out",
  "parse",

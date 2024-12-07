@@ -1,19 +1,19 @@
-use crate::packets::handshaking::handshake_packet::HandshakePacket;
-use crate::packets::login::login_state_packet::LoginStartPacket;
-use crate::packets::status::ping_request_packet::PingRequestPacket;
+use crate::packets::login::login_success_packet::LoginSuccessPacket;
 use crate::packets::status::ping_response_packet::PingResponsePacket;
-use crate::packets::status::status_request_packet::StatusRequestPacket;
 use crate::packets::status::status_response::StatusResponse;
 use crate::packets::status::status_response_packet::StatusResponsePacket;
 use crate::payload::{Payload, PayloadAppendError};
-use crate::state::State;
-use protocol::prelude::{DecodePacket, EncodePacket, SerializePacketData, VarInt};
+use crate::state::handle_handshake_state::handle_handshake_state;
+use crate::state::handle_login_state::{handle_login_state, LoginResult};
+use crate::state::handle_status_state::{handle_status_state, StatusResult};
+use crate::state::state::State;
+use protocol::prelude::{EncodePacket, PacketId, SerializePacketData, VarInt};
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::{debug, error};
+use tracing::error;
 
 pub struct Client {
     socket: TcpStream,
@@ -30,7 +30,7 @@ pub enum ClientReadError {
     NoBytesReceived,
     #[error("failed to read socket; error={0}")]
     FailedToRead(std::io::Error),
-    #[error("unknown packet_in {0}")]
+    #[error("unknown packet received; packet_id=0x{0:02x}")]
     UnknownPacket(u8),
     #[error("state not supported {0}")]
     NotSupportedState(State),
@@ -97,26 +97,42 @@ impl Client {
                 Ok(())
             }
             State::Status => {
-                let result = handle_status(packet_id, packet_payload)?;
+                let result = handle_status_state(packet_id, packet_payload)?;
                 match result {
                     StatusResult::Status => {
                         let packet = StatusResponsePacket::from_status_response(
                             &StatusResponse::new("1.21.4", 769, "A Minecraft Server", false),
                         );
-                        self.write_packet(0x00, packet).await?;
+                        self.write_packet(packet).await?;
                     }
                     StatusResult::Ping(timestamp) => {
                         let packet = PingResponsePacket { timestamp };
-                        self.write_packet(0x01, packet).await?;
+                        self.write_packet(packet).await?;
                     }
                 };
-
                 Ok(())
             }
             State::Login => {
-                handle_login(packet_id, packet_payload)?;
+                let result = handle_login_state(packet_id, packet_payload)?;
+                match result {
+                    LoginResult::Login(uuid, username) => {
+                        let packet = LoginSuccessPacket {
+                            uuid,
+                            username,
+                            number_of_properties: VarInt::new(0),
+                            properties: Vec::new(),
+                        };
+                        self.write_packet(packet).await?;
+                    }
+                    LoginResult::LoginAcknowledged => {
+                        self.update_state(State::Configuration);
+                    }
+                }
                 Ok(())
             }
+            State::Configuration => Err(Box::new(ClientReadError::NotSupportedState(
+                State::Configuration,
+            ))),
             State::Transfer => Err(Box::new(ClientReadError::NotSupportedState(
                 State::Transfer,
             ))),
@@ -125,75 +141,15 @@ impl Client {
 
     async fn write_packet(
         &mut self,
-        packet_id: u8,
-        packet: impl EncodePacket,
+        packet: impl EncodePacket + PacketId,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let encoded_packet = packet.encode()?;
         let mut payload = Vec::new();
         VarInt::new(encoded_packet.len() as i32 + 1).encode(&mut payload)?;
-        payload.push(packet_id);
+        payload.push(packet.get_packet_id());
         payload.extend_from_slice(&encoded_packet);
 
         self.socket.write_all(&payload).await?;
         Ok(())
-    }
-}
-
-/// Returns the next state
-fn handle_handshake_state(
-    packet_id: u8,
-    payload: &[u8],
-) -> Result<State, Box<dyn std::error::Error>> {
-    match packet_id {
-        0x00 => {
-            let packet = HandshakePacket::decode(payload)?;
-            debug!("{:?}", packet);
-            Ok(State::parse(packet.next_state.value())?)
-        }
-        _ => {
-            error!("unknown packet_in id: {}", packet_id);
-            Err(Box::new(ClientReadError::UnknownPacket(packet_id)))
-        }
-    }
-}
-
-enum StatusResult {
-    Status,
-    Ping(i64),
-}
-
-fn handle_status(
-    packet_id: u8,
-    payload: &[u8],
-) -> Result<StatusResult, Box<dyn std::error::Error>> {
-    match packet_id {
-        0x00 => {
-            let packet = StatusRequestPacket::decode(payload)?;
-            debug!("{:?}", packet);
-            Ok(StatusResult::Status)
-        }
-        0x01 => {
-            let packet = PingRequestPacket::decode(payload)?;
-            debug!("{:?}", packet);
-            Ok(StatusResult::Ping(packet.timestamp))
-        }
-        _ => {
-            error!("unknown packet_in id: {}", packet_id);
-            Err(Box::new(ClientReadError::UnknownPacket(packet_id)))
-        }
-    }
-}
-
-fn handle_login(packet_id: u8, payload: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
-    match packet_id {
-        0x00 => {
-            let packet = LoginStartPacket::decode(payload)?;
-            debug!("{:?}", packet);
-            Ok(())
-        }
-        _ => {
-            error!("unknown packet_in id: {}", packet_id);
-            Err(Box::new(ClientReadError::UnknownPacket(packet_id)))
-        }
     }
 }
