@@ -1,0 +1,12 @@
+[package]
+name = "packet"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+quote = "1.0.37"
+syn = "2.0.90"
+thiserror = "2.0.4"
+
+[lib]
+proc-macro = true
