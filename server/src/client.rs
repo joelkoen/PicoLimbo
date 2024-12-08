@@ -1,21 +1,31 @@
+use crate::packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
+use crate::packets::configuration::client_bound_plugin_message_packet::ClientBoundPluginMessagePacket;
+use crate::packets::configuration::data::registry_entry::RegistryEntry;
 use crate::packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
+use crate::packets::configuration::registry_data_packet::RegistryDataPacket;
 use crate::packets::login::login_success_packet::LoginSuccessPacket;
+use crate::packets::play::login_packet::LoginPacket;
 use crate::packets::status::ping_response_packet::PingResponsePacket;
 use crate::packets::status::status_response::StatusResponse;
 use crate::packets::status::status_response_packet::StatusResponsePacket;
 use crate::payload::{Payload, PayloadAppendError};
+use crate::registry::get_all_registries::get_all_registries;
 use crate::state::handle_configuration_state::{handle_configuration_state, ConfigurationResult};
 use crate::state::handle_handshake_state::handle_handshake_state;
 use crate::state::handle_login_state::{handle_login_state, LoginResult};
 use crate::state::handle_status_state::{handle_status_state, StatusResult};
 use crate::state::State;
-use protocol::prelude::{EncodePacket, PacketId, SerializePacketData, VarInt};
+use protocol::prelude::{EncodePacket, Identifier, PacketId, SerializePacketData, VarInt};
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::net::SocketAddr;
+use std::path::Path;
+use std::str::FromStr;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::{error, info};
+use tracing::field::debug;
+use tracing::{debug, error, info};
 
 pub struct Client {
     socket: TcpStream,
@@ -121,7 +131,6 @@ impl Client {
                         let packet = LoginSuccessPacket {
                             uuid,
                             username,
-                            number_of_properties: VarInt::new(0),
                             properties: Vec::new(),
                         };
                         self.write_packet(packet).await?;
@@ -135,22 +144,61 @@ impl Client {
             State::Configuration => {
                 let result = handle_configuration_state(packet_id, packet_payload)?;
                 match result {
-                    ConfigurationResult::Play => {
-                        self.update_state(State::Play);
+                    ConfigurationResult::Brand(brand) => {
+                        info!("client brand: {}", brand);
                         Ok(())
                     }
-                    ConfigurationResult::Brand(brand) => {
-                        info!("Client brand: {}", brand);
+                    ConfigurationResult::KnownPacks => {
+                        // Send Registry Data
+                        let registries = get_all_registries(Path::new("./data/1_21_4/minecraft"));
+                        let registry_names = registries
+                            .iter()
+                            .map(|registry| registry.registry_id.clone())
+                            .collect::<HashSet<String>>();
+
+                        for registry_name in registry_names {
+                            let packet = RegistryDataPacket {
+                                registry_id: Identifier::from_str(&registry_name)?,
+                                entries: registries
+                                    .iter()
+                                    .filter(|entry| entry.registry_id == registry_name)
+                                    .map(|entry| RegistryEntry {
+                                        entry_id: Identifier::minecraft(&entry.entry_id),
+                                        has_data: true,
+                                        nbt: Some(entry.nbt.clone()),
+                                    })
+                                    .collect(),
+                            };
+                            self.write_packet(packet).await?;
+                        }
+
+                        // Send Finished Configuration
+                        let packet = FinishConfigurationPacket {};
+                        self.write_packet(packet).await?;
                         Ok(())
                     }
                     ConfigurationResult::ClientInformation => {
-                        let packet = FinishConfigurationPacket {};
+                        let packet = ClientBoundPluginMessagePacket::brand("qzl");
+                        self.write_packet(packet).await?;
+
+                        let packet = ClientBoundKnownPacksPacket::default();
+                        self.write_packet(packet).await?;
+
+                        Ok(())
+                    }
+                    ConfigurationResult::Play => {
+                        self.update_state(State::Play);
+                        let packet = LoginPacket::default();
                         self.write_packet(packet).await?;
                         Ok(())
                     }
                 }
             }
-            State::Play => Err(Box::new(ClientReadError::NotSupportedState(State::Play))),
+            State::Play => {
+                debug!("received packet id 0x{:02x}", packet_id);
+                //Err(Box::new(ClientReadError::NotSupportedState(State::Play)))
+                Ok(())
+            }
             State::Transfer => Err(Box::new(ClientReadError::NotSupportedState(
                 State::Transfer,
             ))),
@@ -166,8 +214,15 @@ impl Client {
         VarInt::new(encoded_packet.len() as i32 + 1).encode(&mut payload)?;
         payload.push(packet.get_packet_id());
         payload.extend_from_slice(&encoded_packet);
-
         self.socket.write_all(&payload).await?;
         Ok(())
     }
+}
+
+pub fn print_bytes_hex(bytes: &[u8], length: usize) -> String {
+    bytes[..length]
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<Vec<_>>()
+        .join(" ")
 }

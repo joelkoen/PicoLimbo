@@ -2,6 +2,7 @@ mod client;
 mod get_packet_length;
 mod packets;
 mod payload;
+mod registry;
 mod state;
 
 use crate::client::Client;

@@ -83,6 +83,10 @@ impl Payload {
         }
     }
 
+    pub fn get_expected_length(&self) -> usize {
+        self.expected_length.unwrap_or(0)
+    }
+
     pub fn reset(&mut self) -> Result<(), PayloadAppendError> {
         let end_of_packet = self.packet_start_index + self.get_packet_size();
         self.bytes.drain(..end_of_packet);
@@ -102,11 +106,6 @@ impl Payload {
     #[cfg(test)]
     fn get_bytes_received(&self) -> usize {
         self.bytes_received
-    }
-
-    #[cfg(test)]
-    fn get_expected_length(&self) -> usize {
-        self.expected_length.unwrap_or(0)
     }
 }
 

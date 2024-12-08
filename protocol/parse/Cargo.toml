@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 thiserror = "2.0.4"
 uuid = { version = "1.11.0", features = ["v4"] }
+nbt = { path = "../nbt" }

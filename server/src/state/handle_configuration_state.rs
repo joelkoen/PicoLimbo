@@ -1,15 +1,16 @@
 use crate::client::ClientReadError;
 use crate::packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
-use crate::packets::configuration::client_information_packet::ClientInformationPacket;
-use crate::packets::configuration::plugin_message_packet::PluginMessagePacket;
+use crate::packets::configuration::client_known_packs_packet::ClientKnownPacksPacket;
+use crate::packets::configuration::server_bound_information_packet::ServerBoundInformationPacket;
+use crate::packets::configuration::server_bound_plugin_message_packet::ServerBoundPluginMessagePacket;
 use crate::state::State;
 use protocol::prelude::{DecodePacket, PacketId};
-use tracing::debug;
 
 pub enum ConfigurationResult {
     Brand(String),
     ClientInformation,
     Play,
+    KnownPacks,
 }
 
 pub fn handle_configuration_state(
@@ -17,19 +18,20 @@ pub fn handle_configuration_state(
     payload: &[u8],
 ) -> Result<ConfigurationResult, Box<dyn std::error::Error>> {
     match packet_id {
-        PluginMessagePacket::PACKET_ID => {
-            let packet = PluginMessagePacket::decode(payload)?;
-            debug!("received packet {packet:?}");
+        ServerBoundPluginMessagePacket::PACKET_ID => {
+            let packet = ServerBoundPluginMessagePacket::decode(payload)?;
             Ok(ConfigurationResult::Brand(packet.channel.to_string()))
         }
-        ClientInformationPacket::PACKET_ID => {
-            let packet = ClientInformationPacket::decode(payload)?;
-            debug!("received packet {packet:?}");
+        ServerBoundInformationPacket::PACKET_ID => {
+            ServerBoundInformationPacket::decode(payload)?;
             Ok(ConfigurationResult::ClientInformation)
         }
+        ClientKnownPacksPacket::PACKET_ID => {
+            ClientKnownPacksPacket::decode(payload)?;
+            Ok(ConfigurationResult::KnownPacks)
+        }
         AcknowledgeConfigurationPacket::PACKET_ID => {
-            let packet = AcknowledgeConfigurationPacket::decode(payload)?;
-            debug!("received packet {packet:?}");
+            AcknowledgeConfigurationPacket::decode(payload)?;
             Ok(ConfigurationResult::Play)
         }
         _ => Err(Box::new(ClientReadError::UnknownPacket(
