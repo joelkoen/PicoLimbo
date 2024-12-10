@@ -4,13 +4,13 @@ use protocol::prelude::*;
 #[derive(Debug, PacketIn)]
 #[packet_id(0x07)]
 pub struct ClientKnownPacksPacket {
-    known_packs: Vec<KnownPack>,
+    known_packs: LengthPaddedVec<KnownPack>,
 }
 
 impl Default for ClientKnownPacksPacket {
     fn default() -> Self {
         Self {
-            known_packs: vec![KnownPack::default()],
+            known_packs: vec![KnownPack::default()].into(),
         }
     }
 }

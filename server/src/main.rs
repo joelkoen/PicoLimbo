@@ -1,5 +1,6 @@
 mod client;
 mod get_packet_length;
+mod packet_error;
 mod packets;
 mod payload;
 mod registry;

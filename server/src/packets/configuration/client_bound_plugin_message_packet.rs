@@ -4,7 +4,7 @@ use protocol::prelude::*;
 #[packet_id(0x01)]
 pub struct ClientBoundPluginMessagePacket {
     channel: Identifier,
-    data: Vec<i8>,
+    data: LengthPaddedVec<i8>,
 }
 
 impl ClientBoundPluginMessagePacket {
@@ -16,7 +16,8 @@ impl ClientBoundPluginMessagePacket {
                 .as_bytes()
                 .iter()
                 .map(|&b| b as i8)
-                .collect(),
+                .collect::<Vec<_>>()
+                .into(),
         }
     }
 }

@@ -4,41 +4,22 @@ pub trait SerializePacketData: Sized {
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error>;
 }
 
-impl SerializePacketData for i64 {
-    type Error = std::convert::Infallible;
+macro_rules! impl_serialize_packet_data {
+    ($($t:ty),*) => {
+        $(
+            impl SerializePacketData for $t {
+                type Error = std::convert::Infallible;
 
-    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
-        bytes.extend_from_slice(&self.to_be_bytes());
-        Ok(())
-    }
+                fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
+                    bytes.extend_from_slice(&self.to_be_bytes());
+                    Ok(())
+                }
+            }
+        )*
+    };
 }
 
-impl SerializePacketData for i32 {
-    type Error = std::convert::Infallible;
-
-    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
-        bytes.extend_from_slice(&self.to_be_bytes());
-        Ok(())
-    }
-}
-
-impl SerializePacketData for i8 {
-    type Error = std::convert::Infallible;
-
-    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
-        bytes.push(*self as u8);
-        Ok(())
-    }
-}
-
-impl SerializePacketData for u8 {
-    type Error = std::convert::Infallible;
-
-    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
-        bytes.push(*self);
-        Ok(())
-    }
-}
+impl_serialize_packet_data!(i64, i32, f32, f64, i8, u8);
 
 impl SerializePacketData for bool {
     type Error = std::convert::Infallible;

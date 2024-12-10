@@ -22,7 +22,7 @@ pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
         let field_name = &field.ident;
         let field_type = &field.ty;
         quote! {
-            let #field_name = <#field_type as DeserializePacketData>::decode(bytes, &mut index)?;
+            let #field_name = <#field_type as DeserializePacketData>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?;
         }
     });
 
@@ -35,7 +35,7 @@ pub fn parse_packet_derive(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl DecodePacket for #name {
-            fn decode(bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
+            fn decode(bytes: &[u8]) -> Result<Self, DecodePacketError> {
                 let mut index = 0;
                 #(#field_parsers)*
 

@@ -4,7 +4,11 @@ use crate::packets::configuration::data::registry_entry::RegistryEntry;
 use crate::packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
 use crate::packets::configuration::registry_data_packet::RegistryDataPacket;
 use crate::packets::login::login_success_packet::LoginSuccessPacket;
+use crate::packets::play::chunk_data_and_update_light_packet::ChunkDataAndUpdateLightPacket;
+use crate::packets::play::client_bound_keep_alive_packet::ClientBoundKeepAlivePacket;
+use crate::packets::play::game_event_packet::GameEventPacket;
 use crate::packets::play::login_packet::LoginPacket;
+use crate::packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
 use crate::packets::status::ping_response_packet::PingResponsePacket;
 use crate::packets::status::status_response::StatusResponse;
 use crate::packets::status::status_response_packet::StatusResponsePacket;
@@ -13,9 +17,11 @@ use crate::registry::get_all_registries::get_all_registries;
 use crate::state::handle_configuration_state::{handle_configuration_state, ConfigurationResult};
 use crate::state::handle_handshake_state::handle_handshake_state;
 use crate::state::handle_login_state::{handle_login_state, LoginResult};
+use crate::state::handle_play_state::{handle_play_state, PlayResult};
 use crate::state::handle_status_state::{handle_status_state, StatusResult};
 use crate::state::State;
 use protocol::prelude::{EncodePacket, Identifier, PacketId, SerializePacketData, VarInt};
+use rand::Rng;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::net::SocketAddr;
@@ -24,8 +30,7 @@ use std::str::FromStr;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::field::debug;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace, warn};
 
 pub struct Client {
     socket: TcpStream,
@@ -42,8 +47,6 @@ pub enum ClientReadError {
     NoBytesReceived,
     #[error("failed to read socket; error={0}")]
     FailedToRead(std::io::Error),
-    #[error("unknown packet received; state={0}, packet_id=0x{1:02x}")]
-    UnknownPacket(State, u8),
     #[error("state not supported {0}")]
     NotSupportedState(State),
 }
@@ -60,6 +63,7 @@ impl Client {
 
     pub fn update_state(&mut self, new_state: State) {
         self.state = new_state;
+        debug!("client state updated to {:?}", self.state);
     }
 
     pub async fn read_socket(&mut self) -> Result<(), ClientReadError> {
@@ -72,7 +76,11 @@ impl Client {
             .map_err(ClientReadError::FailedToRead)?;
 
         if bytes_received == 0 {
-            return Err(ClientReadError::NoBytesReceived);
+            // Test if the socket is still open
+            if let Err(err) = self.socket.write_all(&[0]).await {
+                error!("failed to write to socket; error={}", err);
+                return Err(ClientReadError::NoBytesReceived);
+            }
         }
 
         if let Err(err) = self
@@ -101,6 +109,8 @@ impl Client {
         let bytes = self.get_payload().get_data();
         let packet_id = bytes[0];
         let packet_payload = &bytes[1..];
+
+        trace!("received packet id 0x{:02x}", packet_id,);
 
         match self.state {
             State::Handshake => {
@@ -131,7 +141,7 @@ impl Client {
                         let packet = LoginSuccessPacket {
                             uuid,
                             username,
-                            properties: Vec::new(),
+                            properties: Vec::new().into(),
                         };
                         self.write_packet(packet).await?;
                     }
@@ -144,11 +154,17 @@ impl Client {
             State::Configuration => {
                 let result = handle_configuration_state(packet_id, packet_payload)?;
                 match result {
-                    ConfigurationResult::Brand(brand) => {
-                        info!("client brand: {}", brand);
-                        Ok(())
-                    }
-                    ConfigurationResult::KnownPacks => {
+                    ConfigurationResult::SendConfiguration => {
+                        // Send Server Brand
+                        let packet = ClientBoundPluginMessagePacket::brand(
+                            "Quozul's Custom Server Software",
+                        );
+                        self.write_packet(packet).await?;
+
+                        // Send Known Packs
+                        let packet = ClientBoundKnownPacksPacket::default();
+                        self.write_packet(packet).await?;
+
                         // Send Registry Data
                         let registries = get_all_registries(Path::new("./data/1_21_4/minecraft"));
                         let registry_names = registries
@@ -167,7 +183,8 @@ impl Client {
                                         has_data: true,
                                         nbt: Some(entry.nbt.clone()),
                                     })
-                                    .collect(),
+                                    .collect::<Vec<_>>()
+                                    .into(),
                             };
                             self.write_packet(packet).await?;
                         }
@@ -177,26 +194,44 @@ impl Client {
                         self.write_packet(packet).await?;
                         Ok(())
                     }
-                    ConfigurationResult::ClientInformation => {
-                        let packet = ClientBoundPluginMessagePacket::brand("qzl");
-                        self.write_packet(packet).await?;
-
-                        let packet = ClientBoundKnownPacksPacket::default();
-                        self.write_packet(packet).await?;
-
-                        Ok(())
-                    }
                     ConfigurationResult::Play => {
                         self.update_state(State::Play);
+
                         let packet = LoginPacket::default();
                         self.write_packet(packet).await?;
+
+                        // Send Synchronize Player Position
+                        let packet = SynchronizePlayerPositionPacket::default();
+                        self.write_packet(packet).await?;
+
+                        // Send Game Event
+                        let packet = GameEventPacket::start_waiting_for_chunks(0.0);
+                        self.write_packet(packet).await?;
+
+                        // Send Chunk Data and Update Light
+                        let packet = ChunkDataAndUpdateLightPacket::default();
+                        self.write_packet(packet).await?;
+
+                        // Send Keep Alive
+                        self.send_keep_alive().await?;
                         Ok(())
                     }
+                    ConfigurationResult::Nothing => Ok(()),
                 }
             }
             State::Play => {
-                debug!("received packet id 0x{:02x}", packet_id);
-                //Err(Box::new(ClientReadError::NotSupportedState(State::Play)))
+                let result = handle_play_state(packet_id, packet_payload);
+                match result {
+                    Ok(result) => match result {
+                        PlayResult::KeepAlive => {
+                            debug!("received keep alive packet");
+                        }
+                    },
+                    Err(err) => {
+                        warn!("{err}");
+                    }
+                }
+
                 Ok(())
             }
             State::Transfer => Err(Box::new(ClientReadError::NotSupportedState(
@@ -205,11 +240,25 @@ impl Client {
         }
     }
 
+    async fn send_keep_alive(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let random = {
+            let mut rng = rand::thread_rng();
+            rng.gen()
+        };
+        let packet = ClientBoundKeepAlivePacket::new(random);
+        self.write_packet(packet).await
+    }
+
     async fn write_packet(
         &mut self,
         packet: impl EncodePacket + PacketId,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        debug!("writing packet id 0x{:02x}", packet.get_packet_id());
         let encoded_packet = packet.encode()?;
+        trace!(
+            "writing packet bytes: {}",
+            print_bytes_hex(&encoded_packet, encoded_packet.len())
+        );
         let mut payload = Vec::new();
         VarInt::new(encoded_packet.len() as i32 + 1).encode(&mut payload)?;
         payload.push(packet.get_packet_id());

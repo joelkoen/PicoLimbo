@@ -5,7 +5,7 @@ use protocol::prelude::*;
 pub struct LoginSuccessPacket {
     pub uuid: Uuid,
     pub username: String,
-    pub properties: Vec<Property>,
+    pub properties: LengthPaddedVec<Property>,
 }
 
 #[derive(Debug)]

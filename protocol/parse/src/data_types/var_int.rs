@@ -13,7 +13,7 @@ pub enum VarIntParseError {
     InvalidVarIntLength,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct VarInt(i32);
 
 impl VarInt {

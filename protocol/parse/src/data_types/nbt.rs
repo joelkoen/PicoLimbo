@@ -1,5 +1,5 @@
-use crate::prelude::{DeserializePacketData, SerializePacketData, VarInt};
-use nbt::prelude::{BinaryReader, Nbt, parse_tag};
+use crate::prelude::SerializePacketData;
+use nbt::prelude::Nbt;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

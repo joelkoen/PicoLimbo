@@ -8,7 +8,7 @@ pub struct LoginPacket {
     pub is_hardcore: bool,
     /// Size of the following array.
     /// Identifiers for all dimensions on the server.
-    pub dimension_names: Vec<Identifier>,
+    pub dimension_names: LengthPaddedVec<Identifier>,
     /// Was once used by the client to draw the player list, but now is ignored.
     pub max_players: VarInt,
     /// Render distance (2-32).
@@ -22,7 +22,7 @@ pub struct LoginPacket {
     /// Whether players can only craft recipes they have already unlocked. Currently unused by the client.
     pub do_limited_crafting: bool,
     /// The ID of the type of dimension in the minecraft:dimension_type registry, defined by the Registry Data packet.
-    /// 0: overworld, 2: nether, 3: end
+    /// 0: overworld, 1: overworld_caves, 2: the_end, 3: the_nether
     pub dimension_type: VarInt,
     /// Name of the dimension being spawned into.
     pub dimension_name: Identifier,
@@ -54,17 +54,17 @@ impl Default for LoginPacket {
         LoginPacket {
             entity_id: 0,
             is_hardcore: false,
-            dimension_names: Vec::new(),
+            dimension_names: Vec::new().into(),
             max_players: VarInt::new(1),
             view_distance: VarInt::new(10),
             simulation_distance: VarInt::new(10),
-            reduced_debug_info: false,
+            reduced_debug_info: true,
             enable_respawn_screen: true,
             do_limited_crafting: false,
-            dimension_type: VarInt::default(),
+            dimension_type: VarInt::new(0),
             dimension_name: Identifier::minecraft("overworld"),
             hashed_seed: 0,
-            game_mode: 0,
+            game_mode: 3,
             previous_game_mode: -1,
             is_debug: false,
             is_flat: false,

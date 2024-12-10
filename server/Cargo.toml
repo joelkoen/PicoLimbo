@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.42", features = ["rt", "rt-multi-thread", "macros", "net", "io-util"] }
+tokio = { version = "1.42", features = ["rt", "rt-multi-thread", "macros", "net", "io-util", "time"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 protocol = { path = "../protocol/protocol" }
@@ -12,3 +12,4 @@ thiserror = "2.0.4"
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
 walkdir = "2.5.0"
+rand = "0.8.5"

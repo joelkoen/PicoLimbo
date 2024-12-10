@@ -4,5 +4,5 @@ use protocol::prelude::*;
 #[packet_id(0x02)]
 pub struct ServerBoundPluginMessagePacket {
     pub channel: Identifier,
-    data: Vec<i8>,
+    data: LengthPaddedVec<i8>,
 }
