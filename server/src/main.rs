@@ -1,3 +1,4 @@
+mod cli;
 mod client;
 mod get_packet_length;
 mod packet_error;
@@ -6,7 +7,9 @@ mod payload;
 mod registry;
 mod state;
 
+use crate::cli::Cli;
 use crate::client::Client;
+use clap::Parser;
 use tokio::net::TcpListener;
 use tokio::time::{interval, Duration};
 use tracing::{debug, error, info, Level};
@@ -16,10 +19,10 @@ use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    enable_logging(1);
-    let addr = "0.0.0.0:25565";
-    let listener = TcpListener::bind(&addr).await?;
-    info!("listening on: {}", addr);
+    let cli = Cli::parse();
+    enable_logging(cli.debug);
+    let listener = TcpListener::bind(&cli.address).await?;
+    info!("listening on: {}", cli.address);
 
     while let Ok((inbound, address)) = listener.accept().await {
         debug!("accepted new client {}:{}", address.ip(), address.port());

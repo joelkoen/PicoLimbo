@@ -25,7 +25,7 @@ impl Default for SynchronizePlayerPositionPacket {
         Self {
             teleport_id: VarInt::default(),
             x: 0.0,
-            y: 400.0,
+            y: 384.0,
             z: 0.0,
             unknown_a: 0.0,
             unknown_b: 0.0,

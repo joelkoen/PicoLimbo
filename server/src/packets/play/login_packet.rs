@@ -58,7 +58,7 @@ impl Default for LoginPacket {
             max_players: VarInt::new(1),
             view_distance: VarInt::new(10),
             simulation_distance: VarInt::new(10),
-            reduced_debug_info: true,
+            reduced_debug_info: false,
             enable_respawn_screen: true,
             do_limited_crafting: false,
             dimension_type: VarInt::new(0),

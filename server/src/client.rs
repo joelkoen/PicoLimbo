@@ -41,8 +41,8 @@ pub struct Client {
 pub enum ClientReadError {
     #[error("invalid packet_in received; error={0}")]
     InvalidPacket(PayloadAppendError),
-    #[error("no bytes received from the client")]
-    NoBytesReceived,
+    #[error("connection closed; error={0}")]
+    ConnectionClosed(std::io::Error),
     #[error("failed to read socket; error={0}")]
     FailedToRead(std::io::Error),
     #[error("state not supported {0}")]
@@ -75,8 +75,7 @@ impl Client {
         if bytes_received == 0 {
             // Test if the socket is still open
             if let Err(err) = self.socket.write_all(&[0]).await {
-                error!("failed to write to socket; error={}", err);
-                return Err(ClientReadError::NoBytesReceived);
+                return Err(ClientReadError::ConnectionClosed(err));
             }
         }
 
