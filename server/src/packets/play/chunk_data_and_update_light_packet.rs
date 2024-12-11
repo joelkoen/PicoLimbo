@@ -57,7 +57,7 @@ pub struct BlockEntity {
 impl SerializePacketData for BlockEntity {
     type Error = std::convert::Infallible;
 
-    fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
+    fn encode(&self, _bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
         // Nothing to encode
         Ok(())
     }

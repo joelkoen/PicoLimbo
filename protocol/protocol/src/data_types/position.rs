@@ -1,4 +1,4 @@
-use crate::deserialize_packet::DeserializePacketData;
+use crate::deserialize_packet::{DeserializeNumberError, DeserializePacketData};
 use crate::prelude::SerializePacketData;
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ impl Position {
 }
 
 impl DeserializePacketData for Position {
-    type Error = std::convert::Infallible;
+    type Error = DeserializeNumberError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
         let val = i64::decode(bytes, index)?;

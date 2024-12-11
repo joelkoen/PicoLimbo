@@ -24,19 +24,17 @@ use protocol::prelude::{EncodePacket, Identifier, PacketId, SerializePacketData,
 use rand::Rng;
 use std::collections::HashSet;
 use std::fmt::Debug;
-use std::net::SocketAddr;
 use std::path::Path;
 use std::str::FromStr;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{debug, error, trace, warn};
 
 pub struct Client {
     socket: TcpStream,
     state: State,
     payload: Payload,
-    address: SocketAddr,
 }
 
 #[derive(Error, Debug)]
@@ -52,10 +50,9 @@ pub enum ClientReadError {
 }
 
 impl Client {
-    pub fn new(socket: TcpStream, address: SocketAddr) -> Client {
+    pub fn new(socket: TcpStream) -> Client {
         Client {
             socket,
-            address,
             state: State::Handshake,
             payload: Payload::new(),
         }
@@ -110,7 +107,11 @@ impl Client {
         let packet_id = bytes[0];
         let packet_payload = &bytes[1..];
 
-        trace!("received packet id 0x{:02x}", packet_id,);
+        trace!(
+            "received packet id 0x{:02x} with payload: '{}'",
+            packet_id,
+            print_bytes_hex(packet_payload, packet_payload.len())
+        );
 
         match self.state {
             State::Handshake => {
@@ -223,9 +224,8 @@ impl Client {
                 let result = handle_play_state(packet_id, packet_payload);
                 match result {
                     Ok(result) => match result {
-                        PlayResult::KeepAlive => {
-                            debug!("received keep alive packet");
-                        }
+                        PlayResult::UpdatePositionAndRotation { .. } => {}
+                        PlayResult::Nothing => {}
                     },
                     Err(err) => {
                         warn!("{err}");
@@ -240,13 +240,18 @@ impl Client {
         }
     }
 
-    async fn send_keep_alive(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let random = {
-            let mut rng = rand::thread_rng();
-            rng.gen()
-        };
-        let packet = ClientBoundKeepAlivePacket::new(random);
-        self.write_packet(packet).await
+    pub async fn send_keep_alive(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        if self.state == State::Play {
+            let packet = ClientBoundKeepAlivePacket::new(self.get_random());
+            self.write_packet(packet).await
+        } else {
+            Ok(())
+        }
+    }
+
+    fn get_random(&self) -> i64 {
+        let mut rng = rand::thread_rng();
+        rng.gen()
     }
 
     async fn write_packet(
@@ -255,10 +260,6 @@ impl Client {
     ) -> Result<(), Box<dyn std::error::Error>> {
         debug!("writing packet id 0x{:02x}", packet.get_packet_id());
         let encoded_packet = packet.encode()?;
-        trace!(
-            "writing packet bytes: {}",
-            print_bytes_hex(&encoded_packet, encoded_packet.len())
-        );
         let mut payload = Vec::new();
         VarInt::new(encoded_packet.len() as i32 + 1).encode(&mut payload)?;
         payload.push(packet.get_packet_id());
@@ -268,6 +269,7 @@ impl Client {
     }
 }
 
+#[allow(dead_code)]
 pub fn print_bytes_hex(bytes: &[u8], length: usize) -> String {
     bytes[..length]
         .iter()

@@ -8,6 +8,7 @@ mod state;
 
 use crate::client::Client;
 use tokio::net::TcpListener;
+use tokio::time::{interval, Duration};
 use tracing::{debug, error, info, Level};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -15,31 +16,42 @@ use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    enable_logging(2);
+    enable_logging(1);
     let addr = "0.0.0.0:25565";
     let listener = TcpListener::bind(&addr).await?;
     info!("listening on: {}", addr);
 
     while let Ok((inbound, address)) = listener.accept().await {
         debug!("accepted new client {}:{}", address.ip(), address.port());
-        let mut client = Client::new(inbound, address);
+        let mut client = Client::new(inbound);
 
         tokio::spawn(async move {
-            loop {
-                if let Err(err) = client.read_socket().await {
-                    error!("{err}");
-                    return;
-                }
+            let mut keep_alive_interval = interval(Duration::from_secs(20));
 
-                // Once the payload is complete, we can break the loop to deserialize_packet the packet_in
-                if client.is_complete() {
-                    if let Err(err) = client
-                        .handle()
-                        .await
-                        .and_then(|_| Ok(client.reset_payload()?))
-                    {
-                        error!("{err}");
-                        break;
+            loop {
+                tokio::select! {
+                    result = client.read_socket() => {
+                        if let Err(err) = result {
+                            error!("{err}");
+                            return;
+                        }
+
+                        if client.is_complete() {
+                            if let Err(err) = client
+                                .handle()
+                                .await
+                                .and_then(|_| Ok(client.reset_payload()?))
+                            {
+                                error!("{err}");
+                                break;
+                            }
+                        }
+                    }
+                    _ = keep_alive_interval.tick() => {
+                        if let Err(err) = client.send_keep_alive().await {
+                            error!("{err}");
+                            break;
+                        }
                     }
                 }
             }

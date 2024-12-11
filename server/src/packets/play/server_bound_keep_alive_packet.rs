@@ -5,9 +5,3 @@ use protocol::prelude::*;
 pub struct ServerBoundKeepAlivePacket {
     id: i64,
 }
-
-impl ServerBoundKeepAlivePacket {
-    pub fn new(id: i64) -> Self {
-        Self { id }
-    }
-}

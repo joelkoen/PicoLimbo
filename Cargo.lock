@@ -219,15 +219,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parse"
-version = "0.1.0"
-dependencies = [
- "nbt",
- "thiserror",
- "uuid",
-]
-
-[[package]]
 name = "pin-project-lite"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -259,7 +250,8 @@ dependencies = [
  "packet_id_macro",
  "packet_in",
  "packet_out",
- "parse",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]

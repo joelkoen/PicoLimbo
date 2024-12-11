@@ -74,7 +74,7 @@ impl Default for LoginPacket {
             // portal_cooldown: VarInt::default(),
             unknown_a: VarInt::default(),
             unknown_b: VarInt::default(),
-            enforces_secure_chat: false,
+            enforces_secure_chat: true,
         }
     }
 }
