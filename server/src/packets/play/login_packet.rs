@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x2C)]
+#[packet_id(0x2C, "play/client/minecraft:login")]
 pub struct LoginPacket {
     /// The player's Entity ID (EID).
     pub entity_id: i32,

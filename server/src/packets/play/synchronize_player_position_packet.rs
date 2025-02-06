@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x42)]
+#[packet_id(0x42, "play/client/minecraft:player_position")]
 pub struct SynchronizePlayerPositionPacket {
     pub teleport_id: VarInt,
     pub x: f64,

@@ -2,7 +2,7 @@ use crate::packets::status::status_response::StatusResponse;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x00)]
+#[packet_id(0x00, "status/client/minecraft:status_response")]
 pub struct StatusResponsePacket {
     json_response: String,
 }

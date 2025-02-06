@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x02)]
+#[packet_id(0x02, "login/client/minecraft:login_finished")]
 pub struct LoginSuccessPacket {
     pub uuid: Uuid,
     pub username: String,

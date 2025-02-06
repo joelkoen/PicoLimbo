@@ -3,7 +3,7 @@ use protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug, PacketIn)]
-#[packet_id(0x00)]
+#[packet_id(0x00, "handshake/server/minecraft:intention")]
 pub struct HandshakePacket {
     protocol: VarInt,
     hostname: String,
