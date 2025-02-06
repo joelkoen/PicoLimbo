@@ -7,7 +7,7 @@ pub mod handle_status_state;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum State {
     Handshake,
     Status,

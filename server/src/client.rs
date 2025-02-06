@@ -223,7 +223,6 @@ impl Client {
                 let result = handle_play_state(packet_id, packet_payload);
                 match result {
                     Ok(result) => match result {
-                        PlayResult::UpdatePositionAndRotation { .. } => {}
                         PlayResult::Nothing => {}
                     },
                     Err(err) => {

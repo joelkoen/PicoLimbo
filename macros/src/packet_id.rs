@@ -15,6 +15,7 @@ pub fn expand_packet_id(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let expanded = quote! {
+        #[allow(dead_code)]
         #input
 
         impl PacketId for #struct_name {
