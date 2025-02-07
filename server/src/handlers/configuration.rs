@@ -29,7 +29,10 @@ pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginM
     client.send_packet(packet).await;
 
     // Send Registry Data
-    let registries = get_all_registries(Path::new("./data/1_21_4/minecraft"));
+    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data".to_string());
+    let data_dir = Path::new(&data_dir);
+    let version_directory = data_dir.join("1_21_4").join("minecraft");
+    let registries = get_all_registries(&version_directory);
     let registry_names = registries
         .iter()
         .map(|registry| registry.registry_id.clone())

@@ -10,6 +10,8 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::{TcpListener, TcpStream};
+use tokio::signal;
+use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::Mutex;
 use tokio::time::interval;
 use tracing::{debug, error, info, warn};
@@ -130,26 +132,42 @@ impl Server {
         let listener = TcpListener::bind(&self.listen_address)
             .await
             .expect("Failed to bind address");
-        info!("listening on: {}", self.listen_address);
+        info!("Listening on: {}", self.listen_address);
 
         let handlers = Arc::new(self.handlers);
         let packet_map = self.packet_map;
 
+        let mut sigterm = signal(SignalKind::terminate()).expect("failed to setup SIGTERM handler");
+
         loop {
-            match listener.accept().await {
-                Ok((socket, addr)) => {
-                    info!("Accepted connection from {}", addr);
-                    let handlers = handlers.clone();
-                    let packet_map = packet_map.clone();
-                    tokio::spawn(async move {
-                        if let Err(e) = handle_client(socket, handlers, packet_map).await {
-                            error!("Error handling client {}: {:?}", addr, e);
+            tokio::select! {
+                accept_result = listener.accept() => {
+                    match accept_result {
+                        Ok((socket, addr)) => {
+                            info!("Accepted connection from {}", addr);
+                            let handlers = handlers.clone();
+                            let packet_map = packet_map.clone();
+                            tokio::spawn(async move {
+                                if let Err(e) = handle_client(socket, handlers, packet_map).await {
+                                    error!("Error handling client {}: {:?}", addr, e);
+                                }
+                            });
                         }
-                    });
+                        Err(e) => {
+                            error!("Failed to accept a connection: {:?}", e);
+                        }
+                    }
+                },
+
+                _ = signal::ctrl_c() => {
+                    info!("SIGINT received, shutting down gracefully.");
+                    break;
                 }
-                Err(e) => {
-                    error!("Failed to accept a connection: {:?}", e);
-                }
+
+                _ = sigterm.recv() => {
+                    info!("SIGTERM received, shutting down gracefully.");
+                    break;
+                },
             }
         }
     }
