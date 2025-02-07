@@ -4,7 +4,7 @@ use protocol::prelude::{EncodePacket, PacketId, SerializePacketData, VarInt};
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tracing::debug;
+use tracing::{debug, trace};
 
 pub struct PacketStream {
     socket: TcpStream,
@@ -46,7 +46,11 @@ impl PacketStream {
         &mut self,
         packet: impl EncodePacket + PacketId,
     ) -> Result<(), PacketReaderError> {
-        debug!("writing packet id 0x{:02x}", packet.get_packet_id());
+        debug!(
+            "writing packet {} (0x{:02x})",
+            packet.get_packet_name(),
+            packet.get_packet_id()
+        );
         let encoded_packet = packet
             .encode()
             .map_err(|_| PacketReaderError::EncodeError)?;
@@ -56,6 +60,7 @@ impl PacketStream {
             .map_err(|_| PacketReaderError::EncodeError)?;
         payload.push(packet.get_packet_id());
         payload.extend_from_slice(&encoded_packet);
+        trace!("{}", print_bytes_hex(&payload, payload.len()));
         self.socket.write_all(&payload).await?;
         Ok(())
     }
@@ -69,4 +74,13 @@ pub enum PacketReaderError {
     IoError(#[from] std::io::Error),
     #[error("encode packet error")]
     EncodeError,
+}
+
+#[allow(dead_code)]
+pub fn print_bytes_hex(bytes: &[u8], length: usize) -> String {
+    bytes[..length]
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<Vec<_>>()
+        .join(" ")
 }

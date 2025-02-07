@@ -188,6 +188,7 @@ async fn handle_client(
             } => {
                 match packet_result {
                     Ok(Some(raw_packet)) => {
+                        debug!("received packet {}", raw_packet.name);
                         if let Some(handler) = handlers.get(&raw_packet.name) {
                             handler.handle(client.clone(), raw_packet).await;
                         } else {
@@ -198,7 +199,7 @@ async fn handle_client(
                         // You can decide what to do if no packet was received.
                     }
                     Err(err) => {
-                        warn!("Client disconnected or error reading packet: {:?}", err);
+                        debug!("Client disconnected or error reading packet: {:?}", err);
                         break;
                     }
                 }
