@@ -14,6 +14,9 @@ use crate::packets::handshaking::handshake_packet::HandshakePacket;
 use crate::server::{Server, SharedClient};
 use crate::state::State;
 use clap::Parser;
+use handlers::configuration::{on_acknowledge_configuration, on_plugin_message};
+use handlers::login::{on_login_acknowledged, on_login_start};
+use handlers::status::{on_ping_request, on_status_request};
 use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -26,18 +29,12 @@ async fn main() {
 
     Server::new(cli.address)
         .on(State::Handshake, on_handshake)
-        .on(State::Status, handlers::status::on_status_request)
-        .on(State::Status, handlers::status::on_ping_request)
-        .on(State::Login, handlers::login::on_login_start)
-        .on(State::Login, handlers::login::on_login_acknowledged)
-        .on(
-            State::Configuration,
-            handlers::configuration::on_plugin_message,
-        )
-        .on(
-            State::Configuration,
-            handlers::configuration::on_acknowledge_configuration,
-        )
+        .on(State::Status, on_status_request)
+        .on(State::Status, on_ping_request)
+        .on(State::Login, on_login_start)
+        .on(State::Login, on_login_acknowledged)
+        .on(State::Configuration, on_plugin_message)
+        .on(State::Configuration, on_acknowledge_configuration)
         .run()
         .await;
 }
