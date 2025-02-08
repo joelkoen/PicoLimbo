@@ -29,8 +29,7 @@ where
             var_int_buf.push(byte[0]);
 
             match get_packet_length(&var_int_buf) {
-                Ok(result) => {
-                    let packet_length = result.packet_length;
+                Ok(packet_length) => {
                     let mut data = vec![0u8; packet_length];
                     self.stream.read_exact(&mut data).await?;
                     return Ok(RawPacket::new(data));

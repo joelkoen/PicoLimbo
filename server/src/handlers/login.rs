@@ -1,22 +1,33 @@
+use crate::packets::login::game_profile_packet::GameProfilePacket;
 use crate::packets::login::login_acknowledged_packet::LoginAcknowledgedPacket;
 use crate::packets::login::login_state_packet::LoginStartPacket;
 use crate::packets::login::login_success_packet::LoginSuccessPacket;
 use crate::server::client::SharedClient;
 use crate::server::game_profile::GameProfile;
+use crate::server::protocol_version::ProtocolVersion;
 use crate::state::State;
 use tracing::info;
 
 pub async fn on_login_start(client: SharedClient, packet: LoginStartPacket) {
     let game_profile: GameProfile = packet.into();
-
-    let packet = LoginSuccessPacket {
-        uuid: game_profile.uuid(),
-        username: game_profile.username().to_string(),
-        properties: Vec::new().into(),
-    };
-
     let mut client = client.lock().await;
-    client.send_packet(packet).await;
+
+    if client.protocol_version() >= ProtocolVersion::V1_21_2 {
+        let packet = LoginSuccessPacket {
+            uuid: game_profile.uuid(),
+            username: game_profile.username().to_string(),
+            properties: Vec::new().into(),
+        };
+        client.send_packet(packet).await;
+    } else {
+        let packet = GameProfilePacket {
+            uuid: game_profile.uuid(),
+            username: game_profile.username().to_string(),
+            properties: Vec::new().into(),
+            strict_error_handling: false,
+        };
+        client.send_packet(packet).await;
+    }
 
     client.set_game_profile(game_profile.clone());
     info!(

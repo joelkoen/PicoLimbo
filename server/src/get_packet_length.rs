@@ -11,15 +11,9 @@ pub enum PacketLengthParseError {
     PacketTooLarge,
 }
 
-#[derive(Debug)]
-pub struct PacketLengthParseResult {
-    pub packet_start_index: usize,
-    pub packet_length: usize,
-}
-
 pub const MAXIMUM_PACKET_LENGTH: usize = 2_097_151;
 
-pub fn get_packet_length(bytes: &[u8]) -> Result<PacketLengthParseResult, PacketLengthParseError> {
+pub fn get_packet_length(bytes: &[u8]) -> Result<usize, PacketLengthParseError> {
     let mut packet_start_index = 0;
     let packet_length = VarInt::decode(bytes, &mut packet_start_index)
         .map_err(|err| match err {
@@ -34,10 +28,7 @@ pub fn get_packet_length(bytes: &[u8]) -> Result<PacketLengthParseResult, Packet
         if packet_length > MAXIMUM_PACKET_LENGTH {
             Err(PacketLengthParseError::PacketTooLarge)
         } else {
-            Ok(PacketLengthParseResult {
-                packet_length,
-                packet_start_index,
-            })
+            Ok(packet_length)
         }
     } else {
         Err(PacketLengthParseError::NegativeLength)
@@ -52,8 +43,7 @@ mod tests {
     fn test_get_packet_length_valid() {
         let bytes = vec![0x80, 0x01];
         let result = get_packet_length(&bytes).unwrap();
-        assert_eq!(result.packet_length, 128);
-        assert_eq!(result.packet_start_index, 2);
+        assert_eq!(result, 128);
     }
 
     #[test]
@@ -84,8 +74,7 @@ mod tests {
     fn test_get_packet_length_zero_length() {
         let bytes = vec![0x00];
         let result = get_packet_length(&bytes).unwrap();
-        assert_eq!(result.packet_length, 0);
-        assert_eq!(result.packet_start_index, 1);
+        assert_eq!(result, 0);
     }
 
     #[test]
