@@ -15,3 +15,7 @@ walkdir = "2.5.0"
 rand = "0.9.0"
 clap = { version = "4.5", features = ["derive"] }
 async-trait = "0.1.86"
+anyhow = { version = "1.0" }
+
+[dev-dependencies]
+tokio-test = "0.4.4"

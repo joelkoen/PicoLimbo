@@ -1,7 +1,8 @@
 use crate::packets::login::login_acknowledged_packet::LoginAcknowledgedPacket;
 use crate::packets::login::login_state_packet::LoginStartPacket;
 use crate::packets::login::login_success_packet::LoginSuccessPacket;
-use crate::server::{GameProfile, SharedClient};
+use crate::server::client::SharedClient;
+use crate::server::game_profile::GameProfile;
 use crate::state::State;
 use tracing::info;
 

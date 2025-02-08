@@ -17,7 +17,7 @@ pub struct PacketLengthParseResult {
     pub packet_length: usize,
 }
 
-const MAXIMUM_PACKET_LENGTH: usize = 2_097_151;
+pub const MAXIMUM_PACKET_LENGTH: usize = 2_097_151;
 
 pub fn get_packet_length(bytes: &[u8]) -> Result<PacketLengthParseResult, PacketLengthParseError> {
     let mut packet_start_index = 0;

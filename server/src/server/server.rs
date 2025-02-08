@@ -1,0 +1,137 @@
+use crate::server::client::{Client, SharedClient};
+use crate::server::event_handler::{Handler, ListenerHandler};
+use crate::state::State;
+use protocol::prelude::{DecodePacket, PacketId};
+use std::collections::HashMap;
+use std::future::Future;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::signal;
+use tokio::signal::unix::{signal, SignalKind};
+use tokio::sync::Mutex;
+use tokio::time::interval;
+use tracing::{debug, error, info};
+
+pub type PacketMap = HashMap<(State, u8), String>;
+
+pub struct NamedPacket {
+    pub name: String,
+    pub data: Vec<u8>,
+}
+
+pub struct Server {
+    handlers: HashMap<String, Box<dyn Handler>>,
+    listen_address: String,
+    packet_map: PacketMap,
+}
+
+impl Server {
+    pub fn new(listen_address: impl ToString) -> Self {
+        Self {
+            handlers: HashMap::new(),
+            packet_map: HashMap::new(),
+            listen_address: listen_address.to_string(),
+        }
+    }
+
+    pub fn on<T, F, Fut>(mut self, state: State, listener_fn: F) -> Self
+    where
+        T: PacketId + DecodePacket + Send + Sync + 'static,
+        F: Fn(SharedClient, T) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = ()> + Send + 'static,
+    {
+        let packet_name = T::PACKET_NAME.to_string();
+        let handler = ListenerHandler::new(listener_fn);
+
+        self.packet_map
+            .insert((state, T::PACKET_ID), packet_name.clone());
+        self.handlers.insert(packet_name, Box::new(handler));
+        self
+    }
+
+    pub async fn run(self) {
+        let listener = TcpListener::bind(&self.listen_address)
+            .await
+            .expect("Failed to bind address");
+        info!("Listening on: {}", self.listen_address);
+
+        let handlers = Arc::new(self.handlers);
+        let packet_map = self.packet_map;
+
+        let mut sigterm = signal(SignalKind::terminate()).expect("failed to setup SIGTERM handler");
+
+        loop {
+            tokio::select! {
+                accept_result = listener.accept() => {
+                    match accept_result {
+                        Ok((socket, addr)) => {
+                            debug!("Accepted connection from {}", addr);
+                            let handlers = handlers.clone();
+                            let packet_map = packet_map.clone();
+                            tokio::spawn(async move {
+                                if let Err(e) = handle_client(socket, handlers, packet_map).await {
+                                    error!("Error handling client {}: {:?}", addr, e);
+                                }
+                            });
+                        }
+                        Err(e) => {
+                            error!("Failed to accept a connection: {:?}", e);
+                        }
+                    }
+                },
+
+                _ = signal::ctrl_c() => {
+                    info!("SIGINT received, shutting down gracefully.");
+                    break;
+                }
+
+                _ = sigterm.recv() => {
+                    info!("SIGTERM received, shutting down gracefully.");
+                    break;
+                },
+            }
+        }
+    }
+}
+
+async fn handle_client(
+    socket: TcpStream,
+    handlers: Arc<HashMap<String, Box<dyn Handler>>>,
+    packet_map: PacketMap,
+) -> tokio::io::Result<()> {
+    let client = Arc::new(Mutex::new(Client::new(socket, packet_map)));
+    let mut keep_alive_interval = interval(Duration::from_secs(20));
+
+    loop {
+        tokio::select! {
+            packet_result = async {
+                client.lock().await.read_packet().await
+            } => {
+                match packet_result {
+                    Ok(Some(raw_packet)) => {
+                        debug!("received packet {}", raw_packet.name);
+                        if let Some(handler) = handlers.get(&raw_packet.name) {
+                            handler.handle(client.clone(), raw_packet).await;
+                        } else {
+                            error!("No handler registered for packet: {}", raw_packet.name);
+                        }
+                    }
+                    Ok(None) => {
+                        // Unknown packet received
+                    }
+                    Err(err) => {
+                        debug!("client disconnected or error reading packet: {:?}", err);
+                        break;
+                    }
+                }
+            },
+
+            _ = keep_alive_interval.tick() => {
+                client.lock().await.send_keep_alive().await;
+            },
+        }
+    }
+
+    Ok(())
+}

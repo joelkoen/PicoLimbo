@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, parse_macro_input};
+use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
 pub fn expand_parse_out_packet_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -26,7 +26,7 @@ pub fn expand_parse_out_packet_derive(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl EncodePacket for #name {
-            fn encode(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+            fn encode(&self) -> anyhow::Result<Vec<u8>> {
                 let mut bytes = Vec::new();
                 #(#field_parsers)*
                 Ok(bytes)

@@ -8,3 +8,4 @@ macros = { path = "../../macros" }
 thiserror = "2.0"
 uuid = { version = "1.13", features = ["v4"] }
 nbt = { path = "../nbt" }
+anyhow = "1.0.95"

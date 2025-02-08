@@ -1,17 +1,16 @@
 mod cli;
 mod get_packet_length;
 mod handlers;
-mod packet_reader;
+mod network;
 mod packets;
-mod payload;
-mod raw_packet;
 mod registry;
 mod server;
 mod state;
 
 use crate::cli::Cli;
 use crate::packets::handshaking::handshake_packet::HandshakePacket;
-use crate::server::{Server, SharedClient};
+use crate::server::client::SharedClient;
+use crate::server::server::Server;
 use crate::state::State;
 use clap::Parser;
 use handlers::configuration::{on_acknowledge_configuration, on_plugin_message};

@@ -10,13 +10,12 @@ use crate::packets::play::game_event_packet::GameEventPacket;
 use crate::packets::play::login_packet::LoginPacket;
 use crate::packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
 use crate::registry::get_all_registries::get_all_registries;
-use crate::server::SharedClient;
+use crate::server::client::SharedClient;
 use crate::state::State;
 use protocol::prelude::Identifier;
 use std::collections::HashSet;
 use std::path::Path;
 use std::str::FromStr;
-use tracing::info;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
     let mut client = client.lock().await;
