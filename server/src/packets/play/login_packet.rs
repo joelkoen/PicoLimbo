@@ -39,13 +39,13 @@ pub struct LoginPacket {
     /// If true, then the next two fields are present.
     pub has_death_location: bool,
     /// Name of the dimension the player died in.
-    // pub death_dimension_name: Option<Identifier>,
+    pub death_dimension_name: Option<Identifier>,
     /// The location that the player died at.
-    // pub death_location: Option<Position>,
+    pub death_location: Option<Position>,
     /// The number of ticks until the player can use the portal again.
-    // pub portal_cooldown: VarInt,
-    pub unknown_a: VarInt,
-    pub unknown_b: VarInt,
+    pub portal_cooldown: VarInt,
+    #[pvn(768..)]
+    pub sea_level: VarInt,
     pub enforces_secure_chat: bool,
 }
 
@@ -69,11 +69,10 @@ impl Default for LoginPacket {
             is_debug: false,
             is_flat: false,
             has_death_location: false,
-            // death_dimension_name: None,
-            // death_location: None,
-            // portal_cooldown: VarInt::default(),
-            unknown_a: VarInt::default(),
-            unknown_b: VarInt::default(),
+            death_dimension_name: None,
+            death_location: None,
+            portal_cooldown: VarInt::default(),
+            sea_level: VarInt::default(),
             enforces_secure_chat: true,
         }
     }

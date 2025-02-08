@@ -66,7 +66,7 @@ impl Client {
         let result: anyhow::Result<()> = async {
             let packet_id = self
                 .packet_map
-                .get_packet_id(version, packet.get_packet_name())
+                .get_packet_id(&version, packet.get_packet_name())
                 .ok();
 
             if let Some(packet_id) = packet_id {
@@ -76,7 +76,8 @@ impl Client {
                     packet_id
                 );
 
-                let raw_packet = RawPacket::from_packet(packet_id, packet)?;
+                let raw_packet =
+                    RawPacket::from_packet(packet_id, version.version_number(), packet)?;
                 self.packet_reader.write_packet(raw_packet).await?;
                 Ok(())
             } else {
@@ -118,7 +119,7 @@ impl Client {
     fn get_packet_name_from_id(&self, packet_id: u8) -> Option<String> {
         self.packet_map
             .get_packet_name(
-                self.version.clone().unwrap_or_default(),
+                &self.version.clone().unwrap_or_default(),
                 self.state.clone(),
                 PacketRecipient::Server,
                 packet_id,

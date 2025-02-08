@@ -6,6 +6,7 @@ pub enum ProtocolVersion {
     #[default]
     V1_21_4,
     V1_21_2,
+    V1_21,
 }
 
 impl Display for ProtocolVersion {
@@ -13,6 +14,7 @@ impl Display for ProtocolVersion {
         match self {
             ProtocolVersion::V1_21_4 => f.write_str("V1_21_4"),
             ProtocolVersion::V1_21_2 => f.write_str("V1_21_2"),
+            ProtocolVersion::V1_21 => f.write_str("V1_21"),
         }
     }
 }
@@ -22,6 +24,7 @@ impl From<i32> for ProtocolVersion {
         match value {
             769 => ProtocolVersion::V1_21_4,
             768 => ProtocolVersion::V1_21_2,
+            767 => ProtocolVersion::V1_21,
             _ => ProtocolVersion::default(),
         }
     }
@@ -32,6 +35,7 @@ impl ProtocolVersion {
         match self {
             ProtocolVersion::V1_21_4 => 769,
             ProtocolVersion::V1_21_2 => 768,
+            ProtocolVersion::V1_21 => 767,
         }
     }
 }
@@ -62,9 +66,11 @@ mod tests {
 
     #[test]
     fn test_protocol_version_ordering() {
+        let v1_21 = ProtocolVersion::V1_21;
         let v1_21_2 = ProtocolVersion::V1_21_2;
         let v1_21_4 = ProtocolVersion::V1_21_4;
 
+        assert!(v1_21 < v1_21_2);
         assert!(v1_21_2 < v1_21_4);
         assert!(v1_21_4 > v1_21_2);
         assert_eq!(v1_21_4, v1_21_4);

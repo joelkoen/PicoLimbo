@@ -32,12 +32,12 @@ impl PacketMap {
 
     pub fn get_packet_name(
         &self,
-        protocol_version: ProtocolVersion,
+        protocol_version: &ProtocolVersion,
         state: State,
         recipient: PacketRecipient,
         packet_id: u8,
     ) -> anyhow::Result<Option<String>> {
-        let json = self.get_json(protocol_version)?;
+        let json = self.get_json(&protocol_version)?;
 
         let object = json
             .get(state.to_string())
@@ -70,7 +70,7 @@ impl PacketMap {
 
     pub fn get_packet_id(
         &self,
-        protocol_version: ProtocolVersion,
+        protocol_version: &ProtocolVersion,
         packet_name: &'static str,
     ) -> anyhow::Result<u8> {
         let mut json = self.get_json(protocol_version)?;
@@ -99,7 +99,7 @@ impl PacketMap {
             .with_context(|| format!("protocol_id {} out of u8 range", protocol_id))
     }
 
-    fn get_json(&self, protocol_version: ProtocolVersion) -> anyhow::Result<Value> {
+    fn get_json(&self, protocol_version: &ProtocolVersion) -> anyhow::Result<Value> {
         // Build the path to the JSON file.
         let packets_file_path = self
             .root_directory
@@ -133,7 +133,7 @@ mod tests {
 
         // When
         let packet_id = packet_map
-            .get_packet_id(protocol_version, packet_name)
+            .get_packet_id(&protocol_version, packet_name)
             .unwrap();
 
         // Then
@@ -148,7 +148,7 @@ mod tests {
         let packet_name = "handshake/serverbound/minecraft:foo";
 
         // When
-        let packet_id = packet_map.get_packet_id(protocol_version, packet_name);
+        let packet_id = packet_map.get_packet_id(&protocol_version, packet_name);
 
         // Then
         assert!(packet_id.is_err());
@@ -165,7 +165,7 @@ mod tests {
 
         // When
         let packet_name =
-            packet_map.get_packet_name(protocol_version, status, recipient, packet_id);
+            packet_map.get_packet_name(&protocol_version, status, recipient, packet_id);
 
         // Then
         assert_eq!(

@@ -19,14 +19,30 @@ pub fn expand_parse_out_packet_derive(input: TokenStream) -> TokenStream {
 
     let field_parsers = fields.iter().map(|field| {
         let field_name = &field.ident;
-        quote! {
-            self.#field_name.encode(&mut bytes)?;
+        let version_range = field.attrs.iter().find_map(|attr| {
+            if attr.path().is_ident("pvn") {
+                Some(attr.parse_args::<syn::Expr>().unwrap())
+            } else {
+                None
+            }
+        });
+
+        if let Some(version_range) = version_range {
+            quote! {
+                if (#version_range).contains(&protocol_version) {
+                    self.#field_name.encode(&mut bytes)?;
+                }
+            }
+        } else {
+            quote! {
+                self.#field_name.encode(&mut bytes)?;
+            }
         }
     });
 
     let expanded = quote! {
         impl EncodePacket for #name {
-            fn encode(&self) -> anyhow::Result<Vec<u8>> {
+            fn encode(&self, protocol_version: u32) -> anyhow::Result<Vec<u8>> {
                 let mut bytes = Vec::new();
                 #(#field_parsers)*
                 Ok(bytes)
