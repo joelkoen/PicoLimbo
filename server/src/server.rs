@@ -1,8 +1,9 @@
 use crate::packet_reader::{PacketReaderError, PacketStream};
+use crate::packets::login::login_state_packet::LoginStartPacket;
 use crate::packets::play::client_bound_keep_alive_packet::ClientBoundKeepAlivePacket;
 use crate::state::State;
 use async_trait::async_trait;
-use protocol::prelude::{DecodePacket, EncodePacket, PacketId};
+use protocol::prelude::{DecodePacket, EncodePacket, PacketId, Uuid};
 use rand::Rng;
 use std::collections::HashMap;
 use std::future::Future;
@@ -19,10 +20,40 @@ use tracing::{debug, error, info, warn};
 
 pub type PacketMap = HashMap<(State, u8), String>;
 
+#[derive(Debug, Clone)]
+pub struct GameProfile {
+    username: String,
+    uuid: Uuid,
+}
+
+impl GameProfile {
+    pub fn new(username: String, uuid: Uuid) -> Self {
+        Self { username, uuid }
+    }
+
+    pub fn username(&self) -> &str {
+        &self.username
+    }
+
+    pub fn uuid(&self) -> Uuid {
+        self.uuid
+    }
+}
+
+impl From<LoginStartPacket> for GameProfile {
+    fn from(value: LoginStartPacket) -> Self {
+        Self {
+            username: value.name,
+            uuid: value.player_uuid,
+        }
+    }
+}
+
 pub struct Client {
     state: State,
     packet_reader: PacketStream,
     packet_map: PacketMap,
+    game_profile: Option<GameProfile>,
 }
 
 impl Client {
@@ -32,6 +63,7 @@ impl Client {
             packet_reader,
             packet_map,
             state: State::default(),
+            game_profile: None,
         }
     }
 
@@ -65,6 +97,18 @@ impl Client {
         if self.state() == &State::Play {
             let packet = ClientBoundKeepAlivePacket::new(get_random());
             self.send_packet(packet).await;
+        }
+    }
+
+    pub fn set_game_profile(&mut self, profile: GameProfile) {
+        self.game_profile = Some(profile);
+    }
+
+    pub fn username(&self) -> String {
+        if let Some(game_profile) = self.game_profile.clone() {
+            game_profile.username
+        } else {
+            "anonymous".to_string()
         }
     }
 
@@ -144,7 +188,7 @@ impl Server {
                 accept_result = listener.accept() => {
                     match accept_result {
                         Ok((socket, addr)) => {
-                            info!("Accepted connection from {}", addr);
+                            debug!("Accepted connection from {}", addr);
                             let handlers = handlers.clone();
                             let packet_map = packet_map.clone();
                             tokio::spawn(async move {

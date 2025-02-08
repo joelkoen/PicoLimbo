@@ -1,9 +1,11 @@
 use crate::payload::{Payload, PayloadAppendError};
 use crate::raw_packet::RawPacket;
 use protocol::prelude::{EncodePacket, PacketId, SerializePacketData, VarInt};
+use std::time::Duration;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
+use tokio::time::sleep;
 use tracing::{debug, trace};
 
 pub struct PacketStream {

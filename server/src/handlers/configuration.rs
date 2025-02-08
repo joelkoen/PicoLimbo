@@ -16,6 +16,7 @@ use protocol::prelude::Identifier;
 use std::collections::HashSet;
 use std::path::Path;
 use std::str::FromStr;
+use tracing::info;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
     let mut client = client.lock().await;
