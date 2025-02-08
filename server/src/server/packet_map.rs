@@ -6,7 +6,6 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use tracing::debug;
 
 #[derive(Clone)]
 pub struct PacketMap {
@@ -16,14 +15,12 @@ pub struct PacketMap {
 #[derive(Clone)]
 pub enum PacketRecipient {
     Server,
-    Client,
 }
 
 impl Display for PacketRecipient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PacketRecipient::Server => f.write_str("serverbound"),
-            PacketRecipient::Client => f.write_str("clientbound"),
         }
     }
 }

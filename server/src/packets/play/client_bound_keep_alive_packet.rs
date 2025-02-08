@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x27, "play/clientbound/minecraft:keep_alive")]
+#[packet_id("play/clientbound/minecraft:keep_alive")]
 pub struct ClientBoundKeepAlivePacket {
     id: i64,
 }

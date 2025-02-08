@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x01, "configuration/clientbound/minecraft:custom_payload")]
+#[packet_id("configuration/clientbound/minecraft:custom_payload")]
 pub struct ClientBoundPluginMessagePacket {
     channel: Identifier,
     data: LengthPaddedVec<i8>,

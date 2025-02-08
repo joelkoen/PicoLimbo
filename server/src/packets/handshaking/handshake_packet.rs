@@ -4,7 +4,7 @@ use protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug, PacketIn)]
-#[packet_id(0x00, "handshake/serverbound/minecraft:intention")]
+#[packet_id("handshake/serverbound/minecraft:intention")]
 pub struct HandshakePacket {
     protocol: VarInt,
     hostname: String,
