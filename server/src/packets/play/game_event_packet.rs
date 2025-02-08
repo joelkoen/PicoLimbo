@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x23, "play/client/minecraft:game_event")]
+#[packet_id(0x23, "play/clientbound/minecraft:game_event")]
 pub struct GameEventPacket {
     event: u8,
     value: f32,

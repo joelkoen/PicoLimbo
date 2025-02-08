@@ -1,7 +1,7 @@
 use protocol::prelude::*;
 
 #[derive(Debug, PacketIn)]
-#[packet_id(0x00, "configuration/server/minecraft:client_information")]
+#[packet_id(0x00, "configuration/serverbound/minecraft:client_information")]
 pub struct ServerBoundInformationPacket {
     locale: String,
     view_distance: i8,

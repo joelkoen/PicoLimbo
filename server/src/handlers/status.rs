@@ -6,9 +6,16 @@ use crate::packets::status::status_response_packet::StatusResponsePacket;
 use crate::server::client::SharedClient;
 
 pub async fn on_status_request(client: SharedClient, _packet: StatusRequestPacket) {
-    let status_response = StatusResponse::new("1.21.4", 769, "A Minecraft Server", false);
+    let mut client = client.lock().await;
+    let version = client.protocol_version();
+    let status_response = StatusResponse::new(
+        &version.to_string(),
+        version.version_number(),
+        "A Minecraft Server",
+        false,
+    );
     let packet = StatusResponsePacket::from_status_response(&status_response);
-    client.lock().await.send_packet(packet).await;
+    client.send_packet(packet).await;
 }
 
 pub async fn on_ping_request(client: SharedClient, packet: PingRequestPacket) {

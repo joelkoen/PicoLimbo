@@ -11,7 +11,6 @@ use crate::cli::Cli;
 use crate::packets::handshaking::handshake_packet::HandshakePacket;
 use crate::server::client::SharedClient;
 use crate::server::server::Server;
-use crate::state::State;
 use clap::Parser;
 use handlers::configuration::{on_acknowledge_configuration, on_plugin_message};
 use handlers::login::{on_login_acknowledged, on_login_start};
@@ -27,20 +26,23 @@ async fn main() {
     enable_logging(cli.debug);
 
     Server::new(cli.address)
-        .on(State::Handshake, on_handshake)
-        .on(State::Status, on_status_request)
-        .on(State::Status, on_ping_request)
-        .on(State::Login, on_login_start)
-        .on(State::Login, on_login_acknowledged)
-        .on(State::Configuration, on_plugin_message)
-        .on(State::Configuration, on_acknowledge_configuration)
+        .on(on_handshake)
+        .on(on_status_request)
+        .on(on_ping_request)
+        .on(on_login_start)
+        .on(on_login_acknowledged)
+        .on(on_plugin_message)
+        .on(on_acknowledge_configuration)
         .run()
         .await;
 }
 
 async fn on_handshake(client: SharedClient, packet: HandshakePacket) {
+    let mut client = client.lock().await;
+    client.set_protocol(packet.get_protocol());
+
     if let Ok(state) = packet.get_next_state() {
-        client.lock().await.update_state(state);
+        client.update_state(state);
     }
 }
 

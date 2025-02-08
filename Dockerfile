@@ -14,7 +14,7 @@ FROM alpine
 
 WORKDIR /usr/src/app
 
-COPY ./data /usr/src/app/data
+COPY ./data/generated /usr/src/app/data
 COPY --from=build /usr/bin/server /usr/bin/server
 
 ENV DATA_DIR=/usr/src/app/data

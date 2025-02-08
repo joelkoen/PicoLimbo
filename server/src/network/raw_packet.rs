@@ -13,11 +13,11 @@ impl RawPacket {
     }
 
     /// Creates a new raw packet from a serializable packet struct.
-    pub fn from_packet<T>(packet: T) -> anyhow::Result<Self>
+    pub fn from_packet<T>(packet_id: u8, packet: T) -> anyhow::Result<Self>
     where
         T: EncodePacket + PacketId,
     {
-        let mut data = vec![T::PACKET_ID];
+        let mut data = vec![packet_id];
         data.extend_from_slice(&packet.encode()?);
         Ok(Self { data })
     }
@@ -27,6 +27,7 @@ impl RawPacket {
     }
 
     pub fn packet_id(&self) -> u8 {
+        // FIXME: This crashes if the packet is invalid
         self.data[0]
     }
 

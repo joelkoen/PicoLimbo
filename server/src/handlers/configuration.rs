@@ -14,7 +14,7 @@ use crate::server::client::SharedClient;
 use crate::state::State;
 use protocol::prelude::Identifier;
 use std::collections::HashSet;
-use std::path::Path;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
@@ -29,9 +29,10 @@ pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginM
     client.send_packet(packet).await;
 
     // Send Registry Data
-    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data".to_string());
-    let data_dir = Path::new(&data_dir);
-    let version_directory = data_dir.join("1_21_4").join("minecraft");
+    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
+    let version_directory = PathBuf::from(data_dir)
+        .join(client.protocol_version().to_string())
+        .join("data/minecraft");
     let registries = get_all_registries(&version_directory);
     let registry_names = registries
         .iter()

@@ -17,10 +17,26 @@ const AVAILABLE_REGISTRIES: [&str; 9] = [
     "minecraft:worldgen/biome",
 ];
 
+const REGISTRIES_TO_SEND: [&str; 9] = [
+    "banner_pattern",
+    "chat_type",
+    "damage_type",
+    "dimension_type",
+    "painting_variant",
+    "trim_material",
+    "trim_pattern",
+    "wolf_variant",
+    "worldgen/biome",
+];
+
 pub fn get_all_registries(root_directory: &Path) -> Vec<RegistryEntry> {
     WalkDir::new(root_directory)
         .into_iter()
         .filter_map(|e| e.ok())
+        .filter(|e| {
+            let path = e.path().to_str().unwrap_or_default();
+            REGISTRIES_TO_SEND.iter().any(|s| path.contains(s))
+        })
         .flat_map(|entry| json_to_nbt(root_directory, entry.path()))
         .filter(|entry| AVAILABLE_REGISTRIES.contains(&entry.registry_id.as_str()))
         .collect::<Vec<_>>()

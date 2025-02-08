@@ -1,9 +1,10 @@
+use crate::server::protocol_version::ProtocolVersion;
 use crate::state::State;
 use protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug, PacketIn)]
-#[packet_id(0x00, "handshake/server/minecraft:intention")]
+#[packet_id(0x00, "handshake/serverbound/minecraft:intention")]
 pub struct HandshakePacket {
     protocol: VarInt,
     hostname: String,
@@ -24,5 +25,9 @@ impl HandshakePacket {
             3 => Ok(State::Transfer),
             _ => Err(UnknownStateError(state)),
         }
+    }
+
+    pub fn get_protocol(&self) -> ProtocolVersion {
+        ProtocolVersion::from(self.protocol.value())
     }
 }

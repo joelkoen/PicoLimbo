@@ -2,7 +2,7 @@ use crate::packets::play::data::chunk_section::ChunkSection;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x28, "play/client/minecraft:level_chunk_with_light")]
+#[packet_id(0x28, "play/clientbound/minecraft:level_chunk_with_light")]
 pub struct ChunkDataAndUpdateLightPacket {
     chunk_x: i32,
     chunk_z: i32,

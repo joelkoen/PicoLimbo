@@ -2,7 +2,7 @@ use crate::packets::configuration::data::known_pack::KnownPack;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
-#[packet_id(0x0E, "configuration/client/minecraft:select_known_packs")]
+#[packet_id(0x0E, "configuration/clientbound/minecraft:select_known_packs")]
 pub struct ClientBoundKnownPacksPacket {
     pub known_packs: LengthPaddedVec<KnownPack>,
 }

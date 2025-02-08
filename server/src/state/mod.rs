@@ -15,12 +15,12 @@ pub enum State {
 impl Display for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            State::Handshake => f.write_str("Handshake"),
-            State::Status => f.write_str("Status"),
-            State::Login => f.write_str("Login"),
-            State::Configuration => f.write_str("Configuration"),
-            State::Play => f.write_str("Play"),
-            State::Transfer => f.write_str("Transfer"),
+            State::Handshake => f.write_str("handshake"),
+            State::Status => f.write_str("status"),
+            State::Login => f.write_str("login"),
+            State::Configuration => f.write_str("configuration"),
+            State::Play => f.write_str("play"),
+            State::Transfer => f.write_str("transfer"),
         }
     }
 }

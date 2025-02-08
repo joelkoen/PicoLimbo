@@ -1,9 +1,10 @@
-use crate::server::client::{Client, SharedClient};
+use crate::server::client::{Client, ClientReadPacketError, SharedClient};
 use crate::server::event_handler::{Handler, ListenerHandler};
-use crate::state::State;
+use crate::server::packet_map::PacketMap;
 use protocol::prelude::{DecodePacket, PacketId};
 use std::collections::HashMap;
 use std::future::Future;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::{TcpListener, TcpStream};
@@ -11,9 +12,7 @@ use tokio::signal;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::Mutex;
 use tokio::time::interval;
-use tracing::{debug, error, info};
-
-pub type PacketMap = HashMap<(State, u8), String>;
+use tracing::{debug, error, info, warn};
 
 pub struct NamedPacket {
     pub name: String,
@@ -28,14 +27,15 @@ pub struct Server {
 
 impl Server {
     pub fn new(listen_address: impl ToString) -> Self {
+        let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
         Self {
             handlers: HashMap::new(),
-            packet_map: HashMap::new(),
+            packet_map: PacketMap::new(PathBuf::from(data_dir)),
             listen_address: listen_address.to_string(),
         }
     }
 
-    pub fn on<T, F, Fut>(mut self, state: State, listener_fn: F) -> Self
+    pub fn on<T, F, Fut>(mut self, listener_fn: F) -> Self
     where
         T: PacketId + DecodePacket + Send + Sync + 'static,
         F: Fn(SharedClient, T) -> Fut + Send + Sync + 'static,
@@ -44,8 +44,6 @@ impl Server {
         let packet_name = T::PACKET_NAME.to_string();
         let handler = ListenerHandler::new(listener_fn);
 
-        self.packet_map
-            .insert((state, T::PACKET_ID), packet_name.clone());
         self.handlers.insert(packet_name, Box::new(handler));
         self
     }
@@ -109,20 +107,23 @@ async fn handle_client(
                 client.lock().await.read_packet().await
             } => {
                 match packet_result {
-                    Ok(Some(raw_packet)) => {
-                        debug!("received packet {}", raw_packet.name);
-                        if let Some(handler) = handlers.get(&raw_packet.name) {
-                            handler.handle(client.clone(), raw_packet).await;
-                        } else {
-                            error!("No handler registered for packet: {}", raw_packet.name);
+                    Ok(named_packet) => {
+                        if let Some(handler) = handlers.get(&named_packet.name) {
+                            handler.handle(client.clone(), named_packet).await;
                         }
-                    }
-                    Ok(None) => {
-                        // Unknown packet received
+                        // Silently ignore no handler
                     }
                     Err(err) => {
-                        debug!("client disconnected or error reading packet: {:?}", err);
-                        break;
+                        match err {
+                            ClientReadPacketError::UnknownPacket(packet_id) => {
+                                warn!("unknown packet {packet_id}")
+                            }
+                            ClientReadPacketError::PacketStream(err) => {
+                                debug!("client disconnected or error reading packet: {:?}", err);
+                                break;
+                            }
+                        }
+
                     }
                 }
             },
