@@ -1,5 +1,6 @@
 services:
   pico-limbo:
     build: .
+    image: ghcr.io/quozul/picolimbo:master
     ports:
       - "25565:25565"

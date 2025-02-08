@@ -123,7 +123,10 @@ impl Client {
                 PacketRecipient::Server,
                 packet_id,
             )
-            .ok()?
+            .unwrap_or_else(|err| {
+                error!("error getting packet name: {:?}", err);
+                None
+            })
     }
 }
 

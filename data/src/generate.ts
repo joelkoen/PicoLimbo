@@ -1,13 +1,17 @@
-import {writeFile, mkdtemp, copyFile, rm, mkdir, readdir} from "node:fs/promises";
+import {
+    writeFile,
+    mkdtemp,
+    copyFile,
+    rm,
+    mkdir,
+    readdir,
+    opendir,
+    readFile,
+} from "node:fs/promises";
 import {join, dirname} from "node:path";
 import {exec} from "node:child_process";
-
-const api = <T>(url: string): Promise<T> =>
-    new Promise((resolve) => {
-        fetch(url)
-            .then((res) => res.json())
-            .then((data) => resolve(data));
-    });
+import {cleanDataDirectory} from "./clean/cleanData.ts";
+import {downloadServerJars} from "./fetch/serverJar.ts";
 
 const execute = async (command: string, cwd: string): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -22,69 +26,60 @@ const execute = async (command: string, cwd: string): Promise<string> =>
         });
     });
 
-const HOSTS = {
-    versionManifests:
-        "https://launchermeta.mojang.com/mc/game/version_manifest.json",
-};
-
-const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21"];
-
-type VersionManifest = {
-    versions: {
-        id: string;
-        url: string;
-    }[];
-};
-
-type Version = {
-    downloads: {
-        server: {
-            url: string;
-            sha1: string;
-            size: number;
-        };
-    };
-};
+const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2"];
 
 (async () => {
-    const versions = (
-        await api<VersionManifest>(HOSTS.versionManifests)
-    ).versions.filter((version) => SUPPORTED_VERSIONS.includes(version.id));
+    const serverJarDirectory = "servers";
+    const jarFiles = await downloadServerJars(
+        SUPPORTED_VERSIONS,
+        serverJarDirectory,
+    );
 
-    const serverJarDirectory = await mkdtemp("/tmp/servers");
-
-    for (const version of versions) {
-        // Download server jar file
-        const serverDownload = (await api<Version>(version.url)).downloads.server;
-        const blob = await fetch(serverDownload.url).then((res) => res.blob());
-        const jarFileName = `${version.id}.jar`;
-        const serverJarPath = join(serverJarDirectory, jarFileName);
-        await writeFile(serverJarPath, await blob.bytes());
-
+    for (const version of jarFiles) {
         // Run the server to output the files
-        const generatedDirectory = await mkdtemp(`/tmp/generated_${version.id}`);
+        const generatedDirectory = await mkdtemp(
+            `/tmp/generated_${version.version}`,
+        );
         await execute(
-            `java -DbundlerMainClass=net.minecraft.data.Main -jar ${jarFileName} --reports --server --output ${generatedDirectory}`,
+            `java -DbundlerMainClass=net.minecraft.data.Main -jar ${version.fileName} --reports --server --output ${generatedDirectory}`,
             serverJarDirectory,
         );
-        console.log(`Generated ${version.id}: ${serverJarPath}`);
+        console.log(`Generated ${version.version}: ${version.path}`);
 
         // Copy the generated data
-        const outputDirectory = join(process.cwd(), "generated", `V${version.id.replaceAll(".", "_")}`);
-        await move(generatedDirectory, outputDirectory, "data");
-        await move(generatedDirectory, outputDirectory, "reports");
+        const outputDirectory = join(
+            process.cwd(),
+            "generated",
+            `V${version.version.replaceAll(".", "_")}`,
+        );
+        const dataDirectory = await move(
+            generatedDirectory,
+            outputDirectory,
+            "data",
+        );
+        const reportsDirectory = await move(
+            generatedDirectory,
+            outputDirectory,
+            "reports",
+        );
+
+        // Cleanup
+        await cleanDataDirectory(dataDirectory);
+        const wolfVariant = join(dataDirectory, "minecraft", "wolf_variant");
+        await cleanWolfVariants(wolfVariant);
+        await cleanReportsDirectory(reportsDirectory);
         await rm(generatedDirectory, {recursive: true, force: true});
     }
-
-    await rm(serverJarDirectory, {recursive: true, force: true});
 })();
 
 const move = async (
     from: string,
     to: string,
     subdir: string,
-): Promise<void> => {
-    await copyDir(join(from, subdir), join(to, subdir));
+): Promise<string> => {
+    const destination = join(to, subdir);
+    await copyDir(join(from, subdir), destination);
+    return destination;
 };
 
 async function copyDir(src: string, dest: string): Promise<void> {
@@ -98,6 +93,30 @@ async function copyDir(src: string, dest: string): Promise<void> {
         if (entry.isFile()) {
             await mkdir(destDir, {recursive: true});
             await copyFile(srcPath, destPath);
+        }
+    }
+}
+
+async function cleanWolfVariants(path: string): Promise<void> {
+    // Replace "#minecraft:is_" with "minecraft:" in wolf_variant
+    const wolfVariantDirectory = await opendir(path);
+    for await (const dirent of wolfVariantDirectory) {
+        const direntPath = join(path, dirent.name);
+        const fileContents = await readFile(direntPath, "utf8");
+        await writeFile(
+            direntPath,
+            fileContents.replace("#minecraft:is_", "minecraft:"),
+        );
+    }
+}
+
+async function cleanReportsDirectory(path: string): Promise<void> {
+    // Only keep the packets.json file
+    const dir = await opendir(path);
+    for await (const dirent of dir) {
+        if (dirent.name !== "packets.json") {
+            const direntPath = join(path, dirent.name);
+            await rm(direntPath, {recursive: true, force: true});
         }
     }
 }
