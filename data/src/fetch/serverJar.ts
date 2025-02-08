@@ -1,5 +1,6 @@
 import {join} from "node:path";
-import {mkdir, stat, writeFile} from "node:fs/promises";
+import {mkdir, writeFile} from "node:fs/promises";
+import {fileExists} from "./fileExists.ts";
 
 type VersionManifest = {
     versions: {
@@ -83,5 +84,3 @@ export async function downloadServerJars(
     return Promise.all(serverJars);
 }
 
-const fileExists = async (path: string) =>
-    !!(await stat(path).catch((_) => false));

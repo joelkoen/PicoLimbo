@@ -6,6 +6,7 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
+use tracing::trace;
 
 #[derive(Clone)]
 pub struct PacketMap {
@@ -37,6 +38,7 @@ impl PacketMap {
         recipient: PacketRecipient,
         packet_id: u8,
     ) -> anyhow::Result<Option<String>> {
+        trace!("{} {} {} {}", protocol_version, state, recipient, packet_id);
         let json = self.get_json(&protocol_version)?;
 
         let object = json

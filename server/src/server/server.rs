@@ -116,7 +116,7 @@ async fn handle_client(
                     Err(err) => {
                         match err {
                             ClientReadPacketError::UnknownPacket(packet_id) => {
-                                warn!("unknown packet {packet_id}")
+                                debug!("unknown packet {packet_id}")
                             }
                             ClientReadPacketError::PacketStream(err) => {
                                 debug!("client disconnected or error reading packet: {:?}", err);

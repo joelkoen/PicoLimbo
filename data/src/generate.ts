@@ -12,6 +12,7 @@ import {join, dirname} from "node:path";
 import {exec} from "node:child_process";
 import {cleanDataDirectory} from "./clean/cleanData.ts";
 import {downloadServerJars} from "./fetch/serverJar.ts";
+import {fileExists} from "./fetch/fileExists.ts";
 
 const execute = async (command: string, cwd: string): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ const execute = async (command: string, cwd: string): Promise<string> =>
         });
     });
 
-const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21"];
+const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21", "1.20.5"];
 
 (async () => {
     const serverJarDirectory = "servers";
@@ -36,6 +37,17 @@ const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21"];
     );
 
     for (const version of jarFiles) {
+        const outputDirectory = join(
+            process.cwd(),
+            "generated",
+            `V${version.version.replaceAll(".", "_")}`,
+        );
+
+        if (await fileExists(outputDirectory)) {
+            console.log(`Skipping version ${version.version}`);
+            continue
+        }
+
         // Run the server to output the files
         const generatedDirectory = await mkdtemp(
             `/tmp/generated_${version.version}`,
@@ -47,11 +59,6 @@ const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21"];
         console.log(`Generated ${version.version}: ${version.path}`);
 
         // Copy the generated data
-        const outputDirectory = join(
-            process.cwd(),
-            "generated",
-            `V${version.version.replaceAll(".", "_")}`,
-        );
         const dataDirectory = await move(
             generatedDirectory,
             outputDirectory,

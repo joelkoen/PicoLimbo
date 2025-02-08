@@ -7,6 +7,7 @@ pub enum ProtocolVersion {
     V1_21_4,
     V1_21_2,
     V1_21,
+    V1_20_5,
 }
 
 impl Display for ProtocolVersion {
@@ -15,6 +16,7 @@ impl Display for ProtocolVersion {
             ProtocolVersion::V1_21_4 => f.write_str("V1_21_4"),
             ProtocolVersion::V1_21_2 => f.write_str("V1_21_2"),
             ProtocolVersion::V1_21 => f.write_str("V1_21"),
+            ProtocolVersion::V1_20_5 => f.write_str("V1_20_5"),
         }
     }
 }
@@ -25,6 +27,7 @@ impl From<i32> for ProtocolVersion {
             769 => ProtocolVersion::V1_21_4,
             768 => ProtocolVersion::V1_21_2,
             767 => ProtocolVersion::V1_21,
+            766 => ProtocolVersion::V1_20_5,
             _ => ProtocolVersion::default(),
         }
     }
@@ -36,6 +39,7 @@ impl ProtocolVersion {
             ProtocolVersion::V1_21_4 => 769,
             ProtocolVersion::V1_21_2 => 768,
             ProtocolVersion::V1_21 => 767,
+            ProtocolVersion::V1_20_5 => 766,
         }
     }
 }
