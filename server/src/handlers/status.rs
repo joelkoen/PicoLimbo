@@ -1,7 +1,7 @@
+use crate::packets::status::data::status_response::StatusResponse;
 use crate::packets::status::ping_request_packet::PingRequestPacket;
 use crate::packets::status::ping_response_packet::PingResponsePacket;
 use crate::packets::status::status_request_packet::StatusRequestPacket;
-use crate::packets::status::status_response::StatusResponse;
 use crate::packets::status::status_response_packet::StatusResponsePacket;
 use crate::server::client::SharedClient;
 
