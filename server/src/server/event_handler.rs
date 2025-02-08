@@ -33,11 +33,11 @@ where
     Fut: Future<Output = ()> + Send + 'static,
 {
     async fn handle(&self, client: SharedClient, raw_packet: NamedPacket) {
-        let packet = decode_packet::<T>(raw_packet);
+        let packet = async {
+            let client = client.lock().await;
+            T::decode(&raw_packet.data, client.protocol_version().version_number()).unwrap()
+        }
+        .await;
         (self.listener_fn)(client, packet).await;
     }
-}
-
-fn decode_packet<T: DecodePacket>(raw_packet: NamedPacket) -> T {
-    T::decode(&raw_packet.data).unwrap()
 }

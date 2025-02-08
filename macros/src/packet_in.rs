@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, parse_macro_input};
+use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
 pub fn expand_parse_packet_in_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -20,8 +20,26 @@ pub fn expand_parse_packet_in_derive(input: TokenStream) -> TokenStream {
     let field_parsers = fields.iter().map(|field| {
         let field_name = &field.ident;
         let field_type = &field.ty;
-        quote! {
-            let #field_name = <#field_type as DeserializePacketData>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?;
+        let version_range = field.attrs.iter().find_map(|attr| {
+            if attr.path().is_ident("pvn") {
+                Some(attr.parse_args::<syn::Expr>().unwrap())
+            } else {
+                None
+            }
+        });
+
+        if let Some(version_range) = version_range {
+            quote! {
+                let #field_name = if (#version_range).contains(&protocol_version) {
+                    <#field_type as DeserializePacketData>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?
+                } else {
+                    #field_type::default()
+                };
+            }
+        } else {
+            quote! {
+                let #field_name = <#field_type as DeserializePacketData>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?;
+            }
         }
     });
 
@@ -34,7 +52,7 @@ pub fn expand_parse_packet_in_derive(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl DecodePacket for #name {
-            fn decode(bytes: &[u8]) -> Result<Self, DecodePacketError> {
+            fn decode(bytes: &[u8], protocol_version: u32) -> Result<Self, DecodePacketError> {
                 let mut index = 0;
                 #(#field_parsers)*
 
