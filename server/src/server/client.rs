@@ -12,7 +12,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tracing::{debug, error, trace};
+use tracing::{debug, error};
 
 pub struct Client {
     state: State,
@@ -81,7 +81,6 @@ impl Client {
 
                 let raw_packet =
                     RawPacket::from_packet(packet_id, version.version_number(), packet)?;
-                trace!("packet data: '{}'", raw_packet);
                 self.packet_reader.write_packet(raw_packet).await?;
                 Ok(())
             } else {

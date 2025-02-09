@@ -1,3 +1,4 @@
+use crate::handlers::configuration::send_play_packets;
 use crate::packets::login::game_profile_packet::GameProfilePacket;
 use crate::packets::login::login_acknowledged_packet::LoginAcknowledgedPacket;
 use crate::packets::login::login_state_packet::LoginStartPacket;
@@ -35,8 +36,15 @@ pub async fn on_login_start(client: SharedClient, packet: LoginStartPacket) {
         game_profile.username(),
         game_profile.uuid()
     );
+
+    if client.protocol_version() < ProtocolVersion::V1_20_2 {
+        send_play_packets(client).await;
+    }
 }
 
 pub async fn on_login_acknowledged(client: SharedClient, _packet: LoginAcknowledgedPacket) {
-    client.lock().await.update_state(State::Configuration);
+    let mut client = client.lock().await;
+    if client.protocol_version() >= ProtocolVersion::V1_20_2 {
+        client.update_state(State::Configuration);
+    }
 }

@@ -1,14 +1,30 @@
+use crate::registry::get_all_registries::get_registry_codec;
+use crate::server::protocol_version::ProtocolVersion;
 use protocol::prelude::*;
 
-#[derive(Debug, PacketOut)]
+#[derive(PacketOut)]
 #[packet_id("play/clientbound/minecraft:login")]
 pub struct LoginPacket {
     /// The player's Entity ID (EID).
     pub entity_id: i32,
     pub is_hardcore: bool,
+    #[pvn(..764)]
+    pub game_mode: u8,
+    #[pvn(..764)]
+    pub previous_game_mode: i8,
     /// Size of the following array.
     /// Identifiers for all dimensions on the server.
     pub dimension_names: LengthPaddedVec<Identifier>,
+    #[pvn(..764)]
+    pub registry_codec: Nbt,
+    #[pvn(..764)]
+    pub dimension_type: Identifier,
+    /// Name of the dimension being spawned into.
+    #[pvn(..764)]
+    pub dimension_name: Identifier,
+    /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
+    #[pvn(..764)]
+    pub hashed_seed: i64,
     /// Was once used by the client to draw the player list, but now is ignored.
     pub max_players: VarInt,
     /// Render distance (2-32).
@@ -20,21 +36,26 @@ pub struct LoginPacket {
     /// Set to false when the doImmediateRespawn gamerule is true.
     pub enable_respawn_screen: bool,
     /// Whether players can only craft recipes they have already unlocked. Currently unused by the client.
-    pub do_limited_crafting: bool,
+    #[pvn(764..)]
+    pub v_1_20_2_do_limited_crafting: bool,
     /// The ID of the type of dimension in the minecraft:dimension_type registry, defined by the Registry Data packet.
     /// 0: overworld, 1: overworld_caves, 2: the_end, 3: the_nether
     #[pvn(766..)]
     pub v_1_20_5_dimension_type: VarInt,
-    #[pvn(..766)]
-    pub dimension_type: Identifier,
+    #[pvn(764..766)]
+    pub v_1_20_2_dimension_type: Identifier,
     /// Name of the dimension being spawned into.
-    pub dimension_name: Identifier,
+    #[pvn(764..)]
+    pub v_1_20_2_dimension_name: Identifier,
     /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
-    pub hashed_seed: i64,
+    #[pvn(764..)]
+    pub v_1_20_2_hashed_seed: i64,
     /// 0: Survival, 1: Creative, 2: Adventure, 3: Spectator.
-    pub game_mode: u8,
+    #[pvn(764..)]
+    pub v_1_20_2_game_mode: u8,
     /// -1: Undefined (null), 0: Survival, 1: Creative, 2: Adventure, 3: Spectator. The previous game mode. Vanilla client uses this for the debug (F3 + N & F3 + F4) game mode switch. (More information needed)
-    pub previous_game_mode: i8,
+    #[pvn(764..)]
+    pub v_1_20_2_previous_game_mode: i8,
     /// True if the world is a debug mode world; debug mode worlds cannot be modified and have predefined blocks.
     pub is_debug: bool,
     /// True if the world is a superflat world; flat worlds have different void fog and a horizon at y=0 instead of y=63.
@@ -53,24 +74,29 @@ pub struct LoginPacket {
     pub enforces_secure_chat: bool,
 }
 
-impl Default for LoginPacket {
-    fn default() -> Self {
+impl LoginPacket {
+    pub fn new(protocol_version: ProtocolVersion) -> Self {
+        let registry_codec = get_registry_codec(protocol_version);
+        let overworld = Identifier::minecraft("overworld");
         LoginPacket {
             entity_id: 0,
             is_hardcore: false,
+            game_mode: 3,
+            previous_game_mode: -1,
             dimension_names: Vec::new().into(),
+            registry_codec,
             max_players: VarInt::new(1),
             view_distance: VarInt::new(10),
             simulation_distance: VarInt::new(10),
             reduced_debug_info: false,
             enable_respawn_screen: true,
-            do_limited_crafting: false,
+            v_1_20_2_do_limited_crafting: false,
             v_1_20_5_dimension_type: VarInt::new(0),
-            dimension_type: Identifier::minecraft("overworld"),
-            dimension_name: Identifier::minecraft("overworld"),
+            dimension_type: overworld.clone(),
+            dimension_name: overworld.clone(),
             hashed_seed: 0,
-            game_mode: 3,
-            previous_game_mode: -1,
+            v_1_20_2_game_mode: 3,
+            v_1_20_2_previous_game_mode: -1,
             is_debug: false,
             is_flat: false,
             has_death_location: false,
@@ -79,6 +105,9 @@ impl Default for LoginPacket {
             portal_cooldown: VarInt::default(),
             sea_level: VarInt::default(),
             enforces_secure_chat: true,
+            v_1_20_2_dimension_name: overworld.clone(),
+            v_1_20_2_dimension_type: overworld,
+            v_1_20_2_hashed_seed: 0,
         }
     }
 }

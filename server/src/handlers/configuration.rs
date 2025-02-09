@@ -1,7 +1,6 @@
 use crate::packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
 use crate::packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
 use crate::packets::configuration::client_bound_plugin_message_packet::ClientBoundPluginMessagePacket;
-use crate::packets::configuration::data::registry_entry::RegistryEntry;
 use crate::packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
 use crate::packets::configuration::registry_data_packet::{
     RegistryDataCodecPacket, RegistryDataPacket,
@@ -12,14 +11,11 @@ use crate::packets::play::game_event_packet::GameEventPacket;
 use crate::packets::play::login_packet::LoginPacket;
 use crate::packets::play::set_default_spawn_position::SetDefaultSpawnPosition;
 use crate::packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
-use crate::registry::get_all_registries::get_all_registries;
-use crate::server::client::SharedClient;
+use crate::registry::get_all_registries::{get_grouped_registries, get_registry_codec};
+use crate::server::client::{Client, SharedClient};
 use crate::server::protocol_version::ProtocolVersion;
 use crate::state::State;
-use protocol::prelude::{Identifier, Nbt};
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::str::FromStr;
+use tokio::sync::MutexGuard;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
     let mut client = client.lock().await;
@@ -35,27 +31,8 @@ pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginM
     }
 
     // Send Registry Data
-    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
-    let version_directory = PathBuf::from(data_dir)
-        .join(client.protocol_version().to_string())
-        .join("data/minecraft");
-    let registries = get_all_registries(&version_directory);
-
-    let mut grouped: HashMap<Identifier, Vec<RegistryEntry>> = HashMap::new();
-
-    for registry in &registries {
-        let entry = RegistryEntry {
-            entry_id: Identifier::minecraft(&registry.entry_id),
-            has_data: true,
-            nbt: Some(registry.nbt.clone()),
-        };
-        grouped
-            .entry(Identifier::from_str(&registry.registry_id).unwrap())
-            .or_default()
-            .push(entry);
-    }
-
     if client.protocol_version() >= ProtocolVersion::V1_20_5 {
+        let grouped = get_grouped_registries(client.protocol_version());
         for (registry_id, entries) in grouped {
             let packet = RegistryDataPacket {
                 registry_id,
@@ -64,50 +41,7 @@ pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginM
             client.send_packet(packet).await;
         }
     } else {
-        let registry_codec = Nbt::NamelessCompound {
-            value: grouped
-                .iter()
-                .map(|(registry_id, entries)| {
-                    let mut id = 0;
-                    Nbt::Compound {
-                        name: Some(registry_id.to_string()),
-                        value: vec![
-                            Nbt::String {
-                                name: Some(String::from("type")),
-                                value: registry_id.to_string(),
-                            },
-                            Nbt::List {
-                                name: Some(String::from("value")),
-                                value: entries
-                                    .iter()
-                                    .map(|e| {
-                                        let n = Nbt::NamelessCompound {
-                                            value: vec![
-                                                Nbt::String {
-                                                    name: Some("name".to_string()),
-                                                    value: e.entry_id.to_string(),
-                                                },
-                                                Nbt::Int {
-                                                    name: Some("id".to_string()),
-                                                    value: id,
-                                                },
-                                                e.nbt
-                                                    .clone()
-                                                    .unwrap()
-                                                    .to_named_compound("element".to_string()),
-                                            ],
-                                        };
-                                        id = id + 1;
-                                        n
-                                    })
-                                    .collect(),
-                                tag_type: 10,
-                            },
-                        ],
-                    }
-                })
-                .collect::<Vec<_>>(),
-        };
+        let registry_codec = get_registry_codec(client.protocol_version()).to_nameless_compound();
         let packet = RegistryDataCodecPacket { registry_codec };
         client.send_packet(packet).await;
     }
@@ -121,11 +55,13 @@ pub async fn on_acknowledge_configuration(
     client: SharedClient,
     _packet: AcknowledgeConfigurationPacket,
 ) {
-    let mut client = client.lock().await;
+    send_play_packets(client.lock().await).await;
+}
 
+pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     client.update_state(State::Play);
 
-    let packet = LoginPacket::default();
+    let packet = LoginPacket::new(client.protocol_version());
     client.send_packet(packet).await;
 
     // Send Synchronize Player Position

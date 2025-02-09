@@ -1,8 +1,11 @@
-use protocol::prelude::Nbt;
+use crate::server::protocol_version::ProtocolVersion;
+use protocol::prelude::{Identifier, Nbt};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use walkdir::WalkDir;
 
 const AVAILABLE_REGISTRIES: [&str; 9] = [
@@ -29,7 +32,90 @@ const REGISTRIES_TO_SEND: [&str; 9] = [
     "worldgen/biome",
 ];
 
-pub fn get_all_registries(root_directory: &Path) -> Vec<RegistryEntry> {
+pub fn get_grouped_registries(
+    protocol_version: ProtocolVersion,
+) -> HashMap<Identifier, Vec<crate::packets::configuration::data::registry_entry::RegistryEntry>> {
+    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
+    let version_directory = PathBuf::from(data_dir)
+        .join(protocol_version.to_string())
+        .join("data/minecraft");
+    let registries = get_all_registries(&version_directory);
+
+    let mut grouped: HashMap<
+        Identifier,
+        Vec<crate::packets::configuration::data::registry_entry::RegistryEntry>,
+    > = HashMap::new();
+
+    for registry in &registries {
+        let entry = crate::packets::configuration::data::registry_entry::RegistryEntry {
+            entry_id: Identifier::minecraft(&registry.entry_id),
+            has_data: true,
+            nbt: Some(registry.nbt.clone()),
+        };
+        grouped
+            .entry(Identifier::from_str(&registry.registry_id).unwrap())
+            .or_default()
+            .push(entry);
+    }
+
+    grouped
+}
+
+pub fn get_registry_codec(protocol_version: ProtocolVersion) -> Nbt {
+    let grouped = get_grouped_registries(protocol_version.clone());
+    Nbt::Compound {
+        name: None,
+        value: grouped
+            .iter()
+            .map(|(registry_id, entries)| {
+                let mut id = 0;
+                Nbt::Compound {
+                    name: Some(registry_id.to_string()),
+                    value: vec![
+                        Nbt::String {
+                            name: Some(String::from("type")),
+                            value: registry_id.to_string(),
+                        },
+                        Nbt::List {
+                            name: Some(String::from("value")),
+                            value: entries
+                                .iter()
+                                .map(|e| {
+                                    let n = Nbt::Compound {
+                                        name: None,
+                                        value: vec![
+                                            Nbt::String {
+                                                name: Some("name".to_string()),
+                                                value: e.entry_id.to_string(),
+                                            },
+                                            Nbt::Int {
+                                                name: Some("id".to_string()),
+                                                value: id,
+                                            },
+                                            e.nbt
+                                                .clone()
+                                                .unwrap()
+                                                .to_named_compound("element".to_string()),
+                                        ],
+                                    };
+                                    id = id + 1;
+                                    if protocol_version >= ProtocolVersion::V1_20_2 {
+                                        n.to_nameless_compound()
+                                    } else {
+                                        n
+                                    }
+                                })
+                                .collect(),
+                            tag_type: 10,
+                        },
+                    ],
+                }
+            })
+            .collect::<Vec<_>>(),
+    }
+}
+
+fn get_all_registries(root_directory: &Path) -> Vec<RegistryEntry> {
     WalkDir::new(root_directory)
         .into_iter()
         .filter_map(|e| e.ok())
