@@ -1,9 +1,6 @@
 use crate::writers::{
     size_to_i32_bytes, write_array_i32, write_array_i64, write_array_i8, write_string,
 };
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use std::io::Write;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Nbt {
@@ -66,12 +63,6 @@ pub enum Nbt {
 impl Nbt {
     pub fn to_bytes(&self) -> Vec<u8> {
         self.to_bytes_tag(false, false)
-    }
-
-    pub fn to_bytes_compressed(&self) -> std::io::Result<Vec<u8>> {
-        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-        encoder.write_all(b"foo")?;
-        encoder.finish()
     }
 
     pub fn get_long(&self) -> Option<&i64> {
