@@ -23,7 +23,10 @@ pub struct LoginPacket {
     pub do_limited_crafting: bool,
     /// The ID of the type of dimension in the minecraft:dimension_type registry, defined by the Registry Data packet.
     /// 0: overworld, 1: overworld_caves, 2: the_end, 3: the_nether
-    pub dimension_type: VarInt,
+    #[pvn(766..)]
+    pub v_1_20_5_dimension_type: VarInt,
+    #[pvn(..766)]
+    pub dimension_type: Identifier,
     /// Name of the dimension being spawned into.
     pub dimension_name: Identifier,
     /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
@@ -46,6 +49,7 @@ pub struct LoginPacket {
     pub portal_cooldown: VarInt,
     #[pvn(768..)]
     pub sea_level: VarInt,
+    #[pvn(766..)]
     pub enforces_secure_chat: bool,
 }
 
@@ -61,7 +65,8 @@ impl Default for LoginPacket {
             reduced_debug_info: false,
             enable_respawn_screen: true,
             do_limited_crafting: false,
-            dimension_type: VarInt::new(0),
+            v_1_20_5_dimension_type: VarInt::new(0),
+            dimension_type: Identifier::minecraft("overworld"),
             dimension_name: Identifier::minecraft("overworld"),
             hashed_seed: 0,
             game_mode: 3,

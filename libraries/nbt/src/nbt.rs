@@ -1,8 +1,8 @@
 use crate::writers::{
-    size_to_i32_bytes, write_array_i8, write_array_i32, write_array_i64, write_string,
+    size_to_i32_bytes, write_array_i32, write_array_i64, write_array_i8, write_string,
 };
-use flate2::Compression;
 use flate2::write::GzEncoder;
+use flate2::Compression;
 use std::io::Write;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -101,6 +101,14 @@ impl Nbt {
             Self::Compound { value, .. } => value
                 .iter()
                 .find(|v| v.get_name().is_some_and(|v| v == name)),
+            _ => None,
+        }
+    }
+
+    pub fn get_vec(&self) -> Option<Vec<Nbt>> {
+        match self {
+            Self::Compound { value, .. } => Some(value.clone()),
+            Self::NamelessCompound { value, .. } => Some(value.clone()),
             _ => None,
         }
     }
@@ -233,6 +241,20 @@ impl Nbt {
     pub fn to_nameless_compound(&self) -> Nbt {
         match self {
             Nbt::Compound { value, .. } => Nbt::NamelessCompound {
+                value: value.clone(),
+            },
+            _ => panic!("Cannot convert non-compound Nbt to nameless compound"),
+        }
+    }
+
+    pub fn to_named_compound(&self, name: String) -> Nbt {
+        match self {
+            Nbt::NamelessCompound { value, .. } => Nbt::Compound {
+                name: Some(name),
+                value: value.clone(),
+            },
+            Nbt::Compound { value, .. } => Nbt::Compound {
+                name: Some(name),
                 value: value.clone(),
             },
             _ => panic!("Cannot convert non-compound Nbt to nameless compound"),

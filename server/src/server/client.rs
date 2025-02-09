@@ -26,8 +26,8 @@ pub struct Client {
 pub enum ClientReadPacketError {
     #[error(transparent)]
     PacketStream(#[from] PacketStreamError),
-    #[error("unknown packet {0}")]
-    UnknownPacket(u8),
+    #[error("unknown packet {id} received in state {state}")]
+    UnknownPacket { id: u8, state: State },
 }
 
 impl Client {
@@ -52,7 +52,10 @@ impl Client {
                 data: packet.data().to_vec(),
             })
         } else {
-            Err(ClientReadPacketError::UnknownPacket(packet_id))
+            Err(ClientReadPacketError::UnknownPacket {
+                id: packet_id,
+                state: self.state.clone(),
+            })
         }
     }
 

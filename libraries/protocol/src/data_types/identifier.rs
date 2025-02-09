@@ -4,7 +4,7 @@ use crate::prelude::SerializePacketData;
 use std::fmt::Display;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Hash, Eq, Clone)]
 pub struct Identifier {
     pub namespace: String,
     pub thing: String,

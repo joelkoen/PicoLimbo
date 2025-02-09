@@ -12,7 +12,7 @@ use tokio::signal;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::Mutex;
 use tokio::time::interval;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 pub struct NamedPacket {
     pub name: String,
@@ -115,12 +115,12 @@ async fn handle_client(
                     }
                     Err(err) => {
                         match err {
-                            ClientReadPacketError::UnknownPacket(packet_id) => {
-                                debug!("unknown packet {packet_id}")
-                            }
                             ClientReadPacketError::PacketStream(err) => {
                                 debug!("client disconnected or error reading packet: {:?}", err);
                                 break;
+                            }
+                            err => {
+                                debug!("{err}");
                             }
                         }
 
