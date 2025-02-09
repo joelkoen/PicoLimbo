@@ -14,36 +14,38 @@ import { join } from "node:path";
  * @param toKeep List of relative directory paths that should be kept.
  */
 async function cleanDirectory(
-	directory: string,
-	relPath: string,
-	toKeep: string[],
+    directory: string,
+    relPath: string,
+    toKeep: string[],
 ): Promise<void> {
-	const dirHandle = await opendir(directory);
-	for await (const entry of dirHandle) {
-		// Compute the entry's relative path (e.g. "worldgen/biome")
-		const entryRelPath = relPath ? join(relPath, entry.name) : entry.name;
-		const fullPath = join(directory, entry.name);
+    const dirHandle = await opendir(directory);
+    for await (const entry of dirHandle) {
+        // Compute the entry's relative path (e.g. "worldgen/biome")
+        const entryRelPath = relPath ? join(relPath, entry.name) : entry.name;
+        const fullPath = join(directory, entry.name);
 
-		if (entry.isDirectory()) {
-			// If the directory is exactly one of the allowed ones, leave it and its contents intact.
-			if (toKeep.includes(entryRelPath)) {
-				// Skip cleaning this allowed directory
-				continue;
-			}
-			// If this directory is not explicitly allowed but is a parent of an allowed directory,
-			// we need to traverse into it so we can remove any siblings that aren’t allowed.
-			if (toKeep.some((allowed) => allowed.startsWith(`${entryRelPath}/`))) {
-				await cleanDirectory(fullPath, entryRelPath, toKeep);
-			} else {
-				// Otherwise, this directory is not allowed at all, so remove it.
-				await rm(fullPath, { recursive: true, force: true });
-			}
-		} else {
-			// Remove any files (if needed). If you want to keep certain files inside allowed directories,
-			// adjust the logic accordingly.
-			await rm(fullPath, { force: true });
-		}
-	}
+        if (entry.isDirectory()) {
+            // If the directory is exactly one of the allowed ones, leave it and its contents intact.
+            if (toKeep.includes(entryRelPath)) {
+                // Skip cleaning this allowed directory
+                continue;
+            }
+            // If this directory is not explicitly allowed but is a parent of an allowed directory,
+            // we need to traverse into it so we can remove any siblings that aren’t allowed.
+            if (
+                toKeep.some((allowed) => allowed.startsWith(`${entryRelPath}/`))
+            ) {
+                await cleanDirectory(fullPath, entryRelPath, toKeep);
+            } else {
+                // Otherwise, this directory is not allowed at all, so remove it.
+                await rm(fullPath, { recursive: true, force: true });
+            }
+        } else {
+            // Remove any files (if needed). If you want to keep certain files inside allowed directories,
+            // adjust the logic accordingly.
+            await rm(fullPath, { force: true });
+        }
+    }
 }
 
 /**
@@ -56,21 +58,21 @@ async function cleanDirectory(
  * @param toKeep List of registry directories (relative to "minecraft") that should be kept.
  */
 export async function cleanDataDirectory(
-	path: string,
-	toKeep: string[] = REGISTRIES_TO_SEND,
+    path: string,
+    toKeep: string[] = REGISTRIES_TO_SEND,
 ): Promise<void> {
-	const minecraftDir = join(path, "minecraft");
-	await cleanDirectory(minecraftDir, "", toKeep);
+    const minecraftDir = join(path, "minecraft");
+    await cleanDirectory(minecraftDir, "", toKeep);
 }
 
 const REGISTRIES_TO_SEND = [
-	"banner_pattern",
-	"chat_type",
-	"damage_type",
-	"dimension_type",
-	"painting_variant",
-	"trim_material",
-	"trim_pattern",
-	"wolf_variant",
-	"worldgen/biome",
+    "banner_pattern",
+    "chat_type",
+    "damage_type",
+    "dimension_type",
+    "painting_variant",
+    "trim_material",
+    "trim_pattern",
+    "wolf_variant",
+    "worldgen/biome",
 ];

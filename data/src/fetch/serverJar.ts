@@ -1,6 +1,6 @@
-import {join} from "node:path";
-import {mkdir, writeFile} from "node:fs/promises";
-import {fileExists} from "./fileExists.ts";
+import { join } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import { fileExists } from "./fileExists.ts";
 
 type VersionManifest = {
     versions: {
@@ -52,7 +52,7 @@ export async function downloadServerJars(
     savePath: string,
 ): Promise<ServerJar[]> {
     if (!(await fileExists(savePath))) {
-        await mkdir(savePath, {recursive: true});
+        await mkdir(savePath, { recursive: true });
     }
 
     // Check if all Jars are already downloaded
@@ -60,7 +60,7 @@ export async function downloadServerJars(
         const fileName = `${version}.jar`;
         const path = join(savePath, fileName);
         const exists = await fileExists(path);
-        return {fileName, path, exists, version};
+        return { fileName, path, exists, version };
     });
 
     const result = await Promise.all(promises);
@@ -69,8 +69,9 @@ export async function downloadServerJars(
     }
 
     // If at least one does not exist, start the download
-    const versions = (await api<VersionManifest>(HOSTS.versionManifests))
-        .versions.filter(it => versionsToDownload.includes(it.id));
+    const versions = (
+        await api<VersionManifest>(HOSTS.versionManifests)
+    ).versions.filter((it) => versionsToDownload.includes(it.id));
 
     const serverJars = versions.map(async (version) => {
         const fileName = `${version.id}.jar`;
@@ -78,9 +79,13 @@ export async function downloadServerJars(
         if (!(await fileExists(serverJarPath))) {
             await downloadJar(version.url, serverJarPath);
         }
-        return {path: serverJarPath, version: version.id, fileName, exists: true};
+        return {
+            path: serverJarPath,
+            version: version.id,
+            fileName,
+            exists: true,
+        };
     });
 
     return Promise.all(serverJars);
 }
-

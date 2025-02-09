@@ -8,15 +8,15 @@ import {
     opendir,
     readFile,
 } from "node:fs/promises";
-import {join, dirname} from "node:path";
-import {exec} from "node:child_process";
-import {cleanDataDirectory} from "./clean/cleanData.ts";
-import {downloadServerJars} from "./fetch/serverJar.ts";
-import {fileExists} from "./fetch/fileExists.ts";
+import { join, dirname } from "node:path";
+import { exec } from "node:child_process";
+import { cleanDataDirectory } from "./clean/cleanData.ts";
+import { downloadServerJars } from "./fetch/serverJar.ts";
+import { fileExists } from "./fetch/fileExists.ts";
 
 const execute = async (command: string, cwd: string): Promise<string> =>
     new Promise((resolve, reject) => {
-        exec(command, {cwd}, (error, stdout, stderr) => {
+        exec(command, { cwd }, (error, stdout, stderr) => {
             if (error) {
                 return reject(error);
             }
@@ -45,7 +45,7 @@ const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21", "1.20.5", "1.20.3"];
 
         if (await fileExists(outputDirectory)) {
             console.log(`Skipping version ${version.version}`);
-            continue
+            continue;
         }
 
         // Run the server to output the files
@@ -77,7 +77,7 @@ const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21", "1.20.5", "1.20.3"];
             await cleanWolfVariants(wolfVariant);
         }
         await cleanReportsDirectory(reportsDirectory);
-        await rm(generatedDirectory, {recursive: true, force: true});
+        await rm(generatedDirectory, { recursive: true, force: true });
     }
 })();
 
@@ -92,7 +92,10 @@ const move = async (
 };
 
 async function copyDir(src: string, dest: string): Promise<void> {
-    const entries = await readdir(src, {recursive: true, withFileTypes: true});
+    const entries = await readdir(src, {
+        recursive: true,
+        withFileTypes: true,
+    });
 
     for (const entry of entries) {
         const srcPath = join(entry.parentPath, entry.name);
@@ -100,7 +103,7 @@ async function copyDir(src: string, dest: string): Promise<void> {
         const destDir = dirname(destPath);
 
         if (entry.isFile()) {
-            await mkdir(destDir, {recursive: true});
+            await mkdir(destDir, { recursive: true });
             await copyFile(srcPath, destPath);
         }
     }
@@ -125,7 +128,7 @@ async function cleanReportsDirectory(path: string): Promise<void> {
     for await (const dirent of dir) {
         if (dirent.name !== "packets.json") {
             const direntPath = join(path, dirent.name);
-            await rm(direntPath, {recursive: true, force: true});
+            await rm(direntPath, { recursive: true, force: true });
         }
     }
 }
