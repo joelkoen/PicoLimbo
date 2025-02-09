@@ -3,7 +3,7 @@
 > [!WARNING]
 > This software is highly experimental. Use at your own risks and report any bugs by submitting an issue on GitHub.
 
-An attempt at writing a lightweight Minecraft server from scratch in Rust. Supports 1.20.3 and above.
+An attempt at writing a lightweight Minecraft server from scratch in Rust. Supports 1.20.2 and above.
 
 ## Getting Started
 

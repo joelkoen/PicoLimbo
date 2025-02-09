@@ -6,11 +6,14 @@ use protocol::prelude::*;
 pub struct ChunkDataAndUpdateLightPacket {
     chunk_x: i32,
     chunk_z: i32,
+    // Chunk Data
     height_maps: Nbt,
-    /// Size of Data in bytes
+    /// Size of Data in bytes!
+    /// LengthPaddedVec prefixes with the number of elements!
     size: VarInt,
     data: Vec<ChunkSection>,
     block_entities: LengthPaddedVec<BlockEntity>,
+    // Light Data
     sky_light_mask: BitSet,
     block_light_mask: BitSet,
     empty_sky_light_mask: BitSet,

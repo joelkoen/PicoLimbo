@@ -12,7 +12,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
 pub struct Client {
     state: State,
@@ -81,10 +81,14 @@ impl Client {
 
                 let raw_packet =
                     RawPacket::from_packet(packet_id, version.version_number(), packet)?;
+                trace!("packet data: '{}'", raw_packet);
                 self.packet_reader.write_packet(raw_packet).await?;
                 Ok(())
             } else {
-                error!("Unknown packet {}", packet.get_packet_name());
+                error!(
+                    "Trying to send an unmapped packet {}",
+                    packet.get_packet_name()
+                );
                 Err(anyhow::anyhow!("No packet found"))
             }
         }

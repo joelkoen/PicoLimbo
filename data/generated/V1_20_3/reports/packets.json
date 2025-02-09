@@ -61,6 +61,9 @@
       },
       "minecraft:player_position": {
         "protocol_id": 62
+      },
+      "minecraft:set_default_spawn_position": {
+        "protocol_id": 84
       }
     },
     "serverbound": {

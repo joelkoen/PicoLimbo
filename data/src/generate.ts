@@ -27,7 +27,14 @@ const execute = async (command: string, cwd: string): Promise<string> =>
         });
     });
 
-const SUPPORTED_VERSIONS = ["1.21.4", "1.21.2", "1.21", "1.20.5", "1.20.3"];
+const SUPPORTED_VERSIONS = [
+    "1.21.4",
+    "1.21.2",
+    "1.21",
+    "1.20.5",
+    "1.20.3",
+    "1.20.2",
+];
 
 (async () => {
     const serverJarDirectory = "servers";

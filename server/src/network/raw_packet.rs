@@ -1,4 +1,5 @@
 use protocol::prelude::{EncodePacket, PacketId};
+use std::fmt::Display;
 
 #[derive(Debug)]
 pub struct RawPacket {
@@ -39,5 +40,13 @@ impl RawPacket {
 impl From<Vec<u8>> for RawPacket {
     fn from(data: Vec<u8>) -> Self {
         Self { data }
+    }
+}
+
+impl Display for RawPacket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(for byte in self.data() {
+            write!(f, "{:02X} ", byte)?;
+        })
     }
 }
