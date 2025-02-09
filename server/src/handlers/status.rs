@@ -9,7 +9,7 @@ pub async fn on_status_request(client: SharedClient, _packet: StatusRequestPacke
     let mut client = client.lock().await;
     let version = client.protocol_version();
     let status_response = StatusResponse::new(
-        &version.to_string(),
+        version.humanize(),
         version.version_number(),
         "A Minecraft Server",
         false,

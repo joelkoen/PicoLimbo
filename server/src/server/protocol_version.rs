@@ -1,51 +1,19 @@
+use protocol::prelude::Pvn;
 use std::cmp::Ordering;
-use std::fmt::Display;
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Pvn)]
 pub enum ProtocolVersion {
     #[default]
+    #[pvn(769)]
     V1_21_4,
+    #[pvn(768)]
     V1_21_2,
+    #[pvn(767)]
     V1_21,
+    #[pvn(766)]
     V1_20_5,
+    #[pvn(765)]
     V1_20_3,
-}
-
-impl Display for ProtocolVersion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ProtocolVersion::V1_21_4 => f.write_str("V1_21_4"),
-            ProtocolVersion::V1_21_2 => f.write_str("V1_21_2"),
-            ProtocolVersion::V1_21 => f.write_str("V1_21"),
-            ProtocolVersion::V1_20_5 => f.write_str("V1_20_5"),
-            ProtocolVersion::V1_20_3 => f.write_str("V1_20_3"),
-        }
-    }
-}
-
-impl From<i32> for ProtocolVersion {
-    fn from(value: i32) -> ProtocolVersion {
-        match value {
-            769 => ProtocolVersion::V1_21_4,
-            768 => ProtocolVersion::V1_21_2,
-            767 => ProtocolVersion::V1_21,
-            766 => ProtocolVersion::V1_20_5,
-            765 => ProtocolVersion::V1_20_3,
-            _ => ProtocolVersion::default(),
-        }
-    }
-}
-
-impl ProtocolVersion {
-    pub fn version_number(&self) -> u32 {
-        match self {
-            ProtocolVersion::V1_21_4 => 769,
-            ProtocolVersion::V1_21_2 => 768,
-            ProtocolVersion::V1_21 => 767,
-            ProtocolVersion::V1_20_5 => 766,
-            ProtocolVersion::V1_20_3 => 765,
-        }
-    }
 }
 
 impl PartialEq for ProtocolVersion {

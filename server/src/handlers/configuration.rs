@@ -16,10 +16,9 @@ use crate::server::client::SharedClient;
 use crate::server::protocol_version::ProtocolVersion;
 use crate::state::State;
 use protocol::prelude::{Identifier, Nbt};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
-use tracing::trace;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
     let mut client = client.lock().await;
