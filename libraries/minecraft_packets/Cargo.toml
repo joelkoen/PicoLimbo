@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-protocol = { path = "../protocol" }
+minecraft_protocol = { path = "../minecraft_protocol" }
 thiserror = "2.0"
 serde = "1.0"
 serde_json = "1.0"

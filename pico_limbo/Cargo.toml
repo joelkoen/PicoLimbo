@@ -7,7 +7,7 @@ edition = "2021"
 tokio = { version = "1.43", features = ["rt", "rt-multi-thread", "macros", "net", "io-util", "time", "sync", "signal"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-protocol = { path = "../libraries/protocol" }
+minecraft_protocol = { path = "../libraries/minecraft_protocol" }
 minecraft_packets = { path = "../libraries/minecraft_packets" }
 net = { path = "../libraries/net" }
 thiserror = "2.0.11"

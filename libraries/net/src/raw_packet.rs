@@ -1,4 +1,4 @@
-use protocol::prelude::{EncodePacket, PacketId};
+use minecraft_protocol::prelude::{EncodePacket, PacketId};
 use std::fmt::Display;
 
 #[derive(Debug)]

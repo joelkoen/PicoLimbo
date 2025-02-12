@@ -1,5 +1,5 @@
 use crate::status::data::status_response::StatusResponse;
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
 #[packet_id("status/clientbound/minecraft:status_response")]

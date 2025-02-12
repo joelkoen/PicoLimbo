@@ -1,5 +1,5 @@
 use crate::play::data::chunk_section::ChunkSection;
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
 #[packet_id("play/clientbound/minecraft:level_chunk_with_light")]

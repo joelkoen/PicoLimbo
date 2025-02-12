@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.43", features = [] }
-protocol = { path = "../protocol" }
+minecraft_protocol = { path = "../minecraft_protocol" }
 thiserror = "2.0"
 anyhow = "1.0"
 

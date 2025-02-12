@@ -1,7 +1,7 @@
 use crate::server::client::{Client, ClientReadPacketError, SharedClient};
 use crate::server::event_handler::{Handler, ListenerHandler};
 use crate::server::packet_map::PacketMap;
-use protocol::prelude::{DecodePacket, PacketId};
+use minecraft_protocol::prelude::{DecodePacket, PacketId};
 use std::collections::HashMap;
 use std::future::Future;
 use std::path::PathBuf;

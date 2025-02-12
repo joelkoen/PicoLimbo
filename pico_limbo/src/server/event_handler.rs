@@ -1,7 +1,7 @@
 use crate::server::client::SharedClient;
 use crate::server::server::NamedPacket;
 use async_trait::async_trait;
-use protocol::prelude::DecodePacket;
+use minecraft_protocol::prelude::DecodePacket;
 use std::future::Future;
 use std::marker::PhantomData;
 use std::sync::Arc;

@@ -1,4 +1,4 @@
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 
 #[derive(Debug, PacketIn)]
 #[packet_id("login/serverbound/minecraft:login_acknowledged")]

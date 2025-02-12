@@ -1,5 +1,5 @@
 use crate::play::data::palette_container::{PaletteContainer, PaletteContainerError};
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug, Clone)]

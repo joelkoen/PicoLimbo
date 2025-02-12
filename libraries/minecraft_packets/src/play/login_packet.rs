@@ -1,4 +1,4 @@
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 
 #[derive(PacketOut)]
 #[packet_id("play/clientbound/minecraft:login")]

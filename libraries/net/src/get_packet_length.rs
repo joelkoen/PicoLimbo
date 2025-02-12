@@ -1,4 +1,4 @@
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

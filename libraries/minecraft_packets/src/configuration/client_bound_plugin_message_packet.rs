@@ -1,4 +1,4 @@
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
 #[packet_id("configuration/clientbound/minecraft:custom_payload")]

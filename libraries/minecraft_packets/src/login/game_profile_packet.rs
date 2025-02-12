@@ -1,5 +1,5 @@
 use crate::login::login_success_packet::Property;
-use protocol::prelude::*;
+use minecraft_protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]
 #[packet_id("login/clientbound/minecraft:game_profile")]

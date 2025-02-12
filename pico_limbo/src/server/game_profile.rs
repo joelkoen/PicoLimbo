@@ -1,5 +1,5 @@
 use minecraft_packets::login::login_state_packet::LoginStartPacket;
-use protocol::prelude::Uuid;
+use minecraft_protocol::prelude::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct GameProfile {

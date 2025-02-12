@@ -289,10 +289,21 @@ name = "minecraft_packets"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "protocol",
+ "minecraft_protocol",
  "serde",
  "serde_json",
  "thiserror",
+]
+
+[[package]]
+name = "minecraft_protocol"
+version = "0.1.0"
+dependencies = [
+ "macros",
+ "nbt",
+ "packet_serializer",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]
@@ -327,7 +338,7 @@ name = "net"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "protocol",
+ "minecraft_protocol",
  "thiserror",
  "tokio",
  "tokio-test",
@@ -380,8 +391,8 @@ dependencies = [
  "async-trait",
  "clap",
  "minecraft_packets",
+ "minecraft_protocol",
  "net",
- "protocol",
  "rand",
  "serde",
  "serde_json",
@@ -414,17 +425,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60946a68e5f9d28b0dc1c21bb8a97ee7d018a8b322fa57838ba31cc878e22d99"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "protocol"
-version = "0.1.0"
-dependencies = [
- "macros",
- "nbt",
- "packet_serializer",
- "thiserror",
- "uuid",
 ]
 
 [[package]]
