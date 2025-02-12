@@ -1,4 +1,3 @@
-use crate::server::client::{Client, SharedClient};
 use minecraft_packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
 use minecraft_packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
 use minecraft_packets::configuration::client_bound_plugin_message_packet::ClientBoundPluginMessagePacket;
@@ -17,6 +16,7 @@ use minecraft_protocol::data::registry::get_all_registries::{
 };
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
+use minecraft_server::client::{Client, SharedClient};
 use tokio::sync::MutexGuard;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {

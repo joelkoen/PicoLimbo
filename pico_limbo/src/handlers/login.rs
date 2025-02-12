@@ -1,12 +1,12 @@
 use crate::handlers::configuration::send_play_packets;
-use crate::server::client::SharedClient;
-use crate::server::game_profile::GameProfile;
 use minecraft_packets::login::game_profile_packet::GameProfilePacket;
 use minecraft_packets::login::login_acknowledged_packet::LoginAcknowledgedPacket;
 use minecraft_packets::login::login_state_packet::LoginStartPacket;
 use minecraft_packets::login::login_success_packet::LoginSuccessPacket;
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
+use minecraft_server::client::SharedClient;
+use minecraft_server::game_profile::GameProfile;
 use tracing::info;
 
 pub async fn on_login_start(client: SharedClient, packet: LoginStartPacket) {

@@ -1,14 +1,13 @@
 mod cli;
 mod handlers;
-mod server;
 
 use crate::cli::Cli;
 use crate::handlers::configuration::{on_acknowledge_configuration, on_plugin_message};
 use crate::handlers::handshake::on_handshake;
 use crate::handlers::login::{on_login_acknowledged, on_login_start};
 use crate::handlers::status::{on_ping_request, on_status_request};
-use crate::server::server::Server;
 use clap::Parser;
+use minecraft_server::server::Server;
 use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;

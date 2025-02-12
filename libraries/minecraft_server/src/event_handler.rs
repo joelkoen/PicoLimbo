@@ -1,5 +1,5 @@
-use crate::server::client::SharedClient;
-use crate::server::server::NamedPacket;
+use crate::client::SharedClient;
+use crate::server::NamedPacket;
 use async_trait::async_trait;
 use minecraft_protocol::prelude::DecodePacket;
 use std::future::Future;

@@ -1,7 +1,7 @@
-use crate::server::client::SharedClient;
 use minecraft_packets::handshaking::handshake_packet::HandshakePacket;
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
+use minecraft_server::client::SharedClient;
 use thiserror::Error;
 
 pub async fn on_handshake(client: SharedClient, packet: HandshakePacket) {
