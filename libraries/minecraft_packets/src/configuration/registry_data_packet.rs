@@ -1,4 +1,4 @@
-use crate::packets::configuration::data::registry_entry::RegistryEntry;
+use crate::configuration::data::registry_entry::RegistryEntry;
 use protocol::prelude::*;
 
 /// This packet is to use with >= 1.20.5

@@ -1,0 +1,11 @@
+[package]
+name = "minecraft_packets"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+protocol = { path = "../protocol" }
+thiserror = "2.0"
+serde = "1.0"
+serde_json = "1.0"
+anyhow = "1.0"

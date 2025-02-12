@@ -8,6 +8,7 @@ tokio = { version = "1.43", features = ["rt", "rt-multi-thread", "macros", "net"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 protocol = { path = "../libraries/protocol" }
+minecraft_packets = { path = "../libraries/minecraft_packets" }
 thiserror = "2.0.11"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

@@ -1,5 +1,3 @@
-use crate::registry::get_all_registries::get_registry_codec;
-use crate::server::protocol_version::ProtocolVersion;
 use protocol::prelude::*;
 
 #[derive(PacketOut)]
@@ -74,17 +72,16 @@ pub struct LoginPacket {
     pub enforces_secure_chat: bool,
 }
 
-impl LoginPacket {
-    pub fn new(protocol_version: ProtocolVersion) -> Self {
-        let registry_codec = get_registry_codec(protocol_version);
+impl Default for LoginPacket {
+    fn default() -> Self {
         let overworld = Identifier::minecraft("overworld");
-        LoginPacket {
+        Self {
             entity_id: 0,
             is_hardcore: false,
             game_mode: 3,
             previous_game_mode: -1,
             dimension_names: Vec::new().into(),
-            registry_codec,
+            registry_codec: Nbt::End,
             max_players: VarInt::new(1),
             view_distance: VarInt::new(10),
             simulation_distance: VarInt::new(10),

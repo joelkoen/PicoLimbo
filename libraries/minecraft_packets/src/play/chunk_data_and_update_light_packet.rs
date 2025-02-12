@@ -1,4 +1,4 @@
-use crate::packets::play::data::chunk_section::ChunkSection;
+use crate::play::data::chunk_section::ChunkSection;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]

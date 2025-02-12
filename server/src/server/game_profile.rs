@@ -1,4 +1,4 @@
-use crate::packets::login::login_state_packet::LoginStartPacket;
+use minecraft_packets::login::login_state_packet::LoginStartPacket;
 use protocol::prelude::Uuid;
 
 #[derive(Debug, Clone)]

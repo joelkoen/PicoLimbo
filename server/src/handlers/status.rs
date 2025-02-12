@@ -1,9 +1,9 @@
-use crate::packets::status::data::status_response::StatusResponse;
-use crate::packets::status::ping_request_packet::PingRequestPacket;
-use crate::packets::status::ping_response_packet::PingResponsePacket;
-use crate::packets::status::status_request_packet::StatusRequestPacket;
-use crate::packets::status::status_response_packet::StatusResponsePacket;
 use crate::server::client::SharedClient;
+use minecraft_packets::status::data::status_response::StatusResponse;
+use minecraft_packets::status::ping_request_packet::PingRequestPacket;
+use minecraft_packets::status::ping_response_packet::PingResponsePacket;
+use minecraft_packets::status::status_request_packet::StatusRequestPacket;
+use minecraft_packets::status::status_response_packet::StatusResponsePacket;
 
 pub async fn on_status_request(client: SharedClient, _packet: StatusRequestPacket) {
     let mut client = client.lock().await;

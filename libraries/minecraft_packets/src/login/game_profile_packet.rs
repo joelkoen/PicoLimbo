@@ -1,4 +1,4 @@
-use crate::packets::login::login_success_packet::Property;
+use crate::login::login_success_packet::Property;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]

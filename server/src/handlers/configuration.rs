@@ -1,20 +1,20 @@
-use crate::packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
-use crate::packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
-use crate::packets::configuration::client_bound_plugin_message_packet::ClientBoundPluginMessagePacket;
-use crate::packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
-use crate::packets::configuration::registry_data_packet::{
-    RegistryDataCodecPacket, RegistryDataPacket,
-};
-use crate::packets::configuration::server_bound_plugin_message_packet::ServerBoundPluginMessagePacket;
-use crate::packets::play::chunk_data_and_update_light_packet::ChunkDataAndUpdateLightPacket;
-use crate::packets::play::game_event_packet::GameEventPacket;
-use crate::packets::play::login_packet::LoginPacket;
-use crate::packets::play::set_default_spawn_position::SetDefaultSpawnPosition;
-use crate::packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
 use crate::registry::get_all_registries::{get_grouped_registries, get_registry_codec};
 use crate::server::client::{Client, SharedClient};
 use crate::server::protocol_version::ProtocolVersion;
 use crate::state::State;
+use minecraft_packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
+use minecraft_packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
+use minecraft_packets::configuration::client_bound_plugin_message_packet::ClientBoundPluginMessagePacket;
+use minecraft_packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
+use minecraft_packets::configuration::registry_data_packet::{
+    RegistryDataCodecPacket, RegistryDataPacket,
+};
+use minecraft_packets::configuration::server_bound_plugin_message_packet::ServerBoundPluginMessagePacket;
+use minecraft_packets::play::chunk_data_and_update_light_packet::ChunkDataAndUpdateLightPacket;
+use minecraft_packets::play::game_event_packet::GameEventPacket;
+use minecraft_packets::play::login_packet::LoginPacket;
+use minecraft_packets::play::set_default_spawn_position::SetDefaultSpawnPosition;
+use minecraft_packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
 use tokio::sync::MutexGuard;
 
 pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
@@ -61,7 +61,10 @@ pub async fn on_acknowledge_configuration(
 pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     client.update_state(State::Play);
 
-    let packet = LoginPacket::new(client.protocol_version());
+    let packet = LoginPacket {
+        registry_codec: get_registry_codec(client.protocol_version()),
+        ..Default::default()
+    };
     client.send_packet(packet).await;
 
     // Send Synchronize Player Position

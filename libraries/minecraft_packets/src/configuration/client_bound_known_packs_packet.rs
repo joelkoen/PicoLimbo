@@ -1,4 +1,4 @@
-use crate::packets::configuration::data::known_pack::KnownPack;
+use crate::configuration::data::known_pack::KnownPack;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]

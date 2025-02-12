@@ -1,4 +1,4 @@
-use crate::packets::play::data::palette_container::{PaletteContainer, PaletteContainerError};
+use crate::play::data::palette_container::{PaletteContainer, PaletteContainerError};
 use protocol::prelude::*;
 use thiserror::Error;
 

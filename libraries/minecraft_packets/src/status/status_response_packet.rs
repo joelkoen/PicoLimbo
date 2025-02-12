@@ -1,4 +1,4 @@
-use crate::packets::status::data::status_response::StatusResponse;
+use crate::status::data::status_response::StatusResponse;
 use protocol::prelude::*;
 
 #[derive(Debug, PacketOut)]

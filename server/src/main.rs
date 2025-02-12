@@ -2,19 +2,17 @@ mod cli;
 mod get_packet_length;
 mod handlers;
 mod network;
-mod packets;
 mod registry;
 mod server;
 mod state;
 
 use crate::cli::Cli;
-use crate::packets::handshaking::handshake_packet::HandshakePacket;
-use crate::server::client::SharedClient;
+use crate::handlers::configuration::{on_acknowledge_configuration, on_plugin_message};
+use crate::handlers::handshake::on_handshake;
+use crate::handlers::login::{on_login_acknowledged, on_login_start};
+use crate::handlers::status::{on_ping_request, on_status_request};
 use crate::server::server::Server;
 use clap::Parser;
-use handlers::configuration::{on_acknowledge_configuration, on_plugin_message};
-use handlers::login::{on_login_acknowledged, on_login_start};
-use handlers::status::{on_ping_request, on_status_request};
 use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -35,15 +33,6 @@ async fn main() {
         .on(on_acknowledge_configuration)
         .run()
         .await;
-}
-
-async fn on_handshake(client: SharedClient, packet: HandshakePacket) {
-    let mut client = client.lock().await;
-    client.set_protocol(packet.get_protocol());
-
-    if let Ok(state) = packet.get_next_state() {
-        client.update_state(state);
-    }
 }
 
 fn enable_logging(verbose: u8) {

@@ -34,7 +34,8 @@ const REGISTRIES_TO_SEND: [&str; 9] = [
 
 pub fn get_grouped_registries(
     protocol_version: ProtocolVersion,
-) -> HashMap<Identifier, Vec<crate::packets::configuration::data::registry_entry::RegistryEntry>> {
+) -> HashMap<Identifier, Vec<minecraft_packets::configuration::data::registry_entry::RegistryEntry>>
+{
     let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
     let version_directory = PathBuf::from(data_dir)
         .join(protocol_version.to_string())
@@ -43,11 +44,11 @@ pub fn get_grouped_registries(
 
     let mut grouped: HashMap<
         Identifier,
-        Vec<crate::packets::configuration::data::registry_entry::RegistryEntry>,
+        Vec<minecraft_packets::configuration::data::registry_entry::RegistryEntry>,
     > = HashMap::new();
 
     for registry in &registries {
-        let entry = crate::packets::configuration::data::registry_entry::RegistryEntry {
+        let entry = minecraft_packets::configuration::data::registry_entry::RegistryEntry {
             entry_id: Identifier::minecraft(&registry.entry_id),
             has_data: true,
             nbt: Some(registry.nbt.clone()),
