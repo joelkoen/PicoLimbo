@@ -1,5 +1,3 @@
-use thiserror::Error;
-
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 #[error("error decoding packet")]
 pub struct DecodePacketError;

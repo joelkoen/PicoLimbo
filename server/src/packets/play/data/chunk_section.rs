@@ -1,7 +1,5 @@
 use crate::packets::play::data::palette_container::{PaletteContainer, PaletteContainerError};
-use protocol::prelude::{
-    DeserializePacketData, LengthPaddedVecDecodeError, SerializePacketData, VarInt,
-};
+use protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug, Clone)]

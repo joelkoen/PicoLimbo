@@ -343,6 +343,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
+name = "packet_serializer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "thiserror",
+]
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -370,9 +378,9 @@ dependencies = [
 name = "protocol"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "macros",
  "nbt",
+ "packet_serializer",
  "thiserror",
  "uuid",
 ]

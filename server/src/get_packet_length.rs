@@ -1,4 +1,4 @@
-use protocol::prelude::{DeserializePacketData, VarInt, VarIntParseError};
+use protocol::prelude::*;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

@@ -1,6 +1,6 @@
 use crate::get_packet_length::{get_packet_length, PacketLengthParseError, MAXIMUM_PACKET_LENGTH};
 use crate::network::raw_packet::RawPacket;
-use protocol::prelude::{SerializePacketData, VarInt};
+use protocol::prelude::*;
 use std::convert::Infallible;
 use thiserror::Error;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
