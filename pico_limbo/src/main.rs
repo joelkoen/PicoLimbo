@@ -1,4 +1,5 @@
 mod cli;
+mod data;
 mod get_packet_length;
 mod handlers;
 mod network;

@@ -1,7 +1,7 @@
 use protocol::prelude::Pvn;
 use std::cmp::Ordering;
 
-#[derive(Default, Clone, Debug, Pvn)]
+#[derive(Default, Clone, Debug, Pvn, Hash)]
 pub enum ProtocolVersion {
     #[default]
     #[pvn(769)]

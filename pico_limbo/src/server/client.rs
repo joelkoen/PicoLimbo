@@ -1,7 +1,7 @@
 use crate::network::packet_stream::{PacketStream, PacketStreamError};
 use crate::network::raw_packet::RawPacket;
 use crate::server::game_profile::GameProfile;
-use crate::server::packet_map::{PacketMap, PacketRecipient};
+use crate::server::packet_map::PacketMap;
 use crate::server::protocol_version::ProtocolVersion;
 use crate::server::server::NamedPacket;
 use crate::state::State;
@@ -70,7 +70,8 @@ impl Client {
             let packet_id = self
                 .packet_map
                 .get_packet_id(&version, packet.get_packet_name())
-                .ok();
+                .ok()
+                .flatten();
 
             if let Some(packet_id) = packet_id {
                 debug!(
@@ -124,12 +125,7 @@ impl Client {
 
     fn get_packet_name_from_id(&self, packet_id: u8) -> Option<String> {
         self.packet_map
-            .get_packet_name(
-                &self.version.clone().unwrap_or_default(),
-                self.state.clone(),
-                PacketRecipient::Server,
-                packet_id,
-            )
+            .get_packet_name(&self.protocol_version(), &self.state, packet_id)
             .unwrap_or_else(|err| {
                 error!("error getting packet name: {:?}", err);
                 None
