@@ -13,7 +13,7 @@
     "ghcr.io\/quozul\/picolimbo:pterodactyl": "ghcr.io\/quozul\/picolimbo:pterodactyl"
   },
   "file_denylist": [],
-  "startup": "server -a {{SERVER_IP}}:{{SERVER_PORT}}",
+  "startup": "pico_limbo -a {{SERVER_IP}}:{{SERVER_PORT}}",
   "config": {
     "files": "{}",
     "startup": "{\r\n    \"done\": \"Listening on:\"\r\n}",
