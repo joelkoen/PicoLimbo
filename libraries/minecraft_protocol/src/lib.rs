@@ -1,5 +1,6 @@
 extern crate core;
 
+pub mod data;
 mod data_types;
 pub mod protocol_version;
 pub mod state;

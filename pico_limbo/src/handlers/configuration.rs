@@ -1,4 +1,3 @@
-use crate::data::registry::get_all_registries::{get_grouped_registries, get_registry_codec};
 use crate::server::client::{Client, SharedClient};
 use minecraft_packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
 use minecraft_packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
@@ -13,6 +12,9 @@ use minecraft_packets::play::game_event_packet::GameEventPacket;
 use minecraft_packets::play::login_packet::LoginPacket;
 use minecraft_packets::play::set_default_spawn_position::SetDefaultSpawnPosition;
 use minecraft_packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
+use minecraft_protocol::data::registry::get_all_registries::{
+    get_grouped_registries, get_registry_codec,
+};
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
 use tokio::sync::MutexGuard;

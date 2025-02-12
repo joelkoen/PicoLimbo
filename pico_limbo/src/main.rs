@@ -1,5 +1,4 @@
 mod cli;
-mod data;
 mod handlers;
 mod server;
 

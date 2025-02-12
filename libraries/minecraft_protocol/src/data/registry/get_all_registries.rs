@@ -1,5 +1,6 @@
-use minecraft_protocol::prelude::{Identifier, Nbt};
-use minecraft_protocol::protocol_version::ProtocolVersion;
+use crate::data::registry::registry_entry::RegistryEntry;
+use crate::prelude::{Identifier, Nbt};
+use crate::protocol_version::ProtocolVersion;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
@@ -34,21 +35,17 @@ const REGISTRIES_TO_SEND: [&str; 9] = [
 
 pub fn get_grouped_registries(
     protocol_version: ProtocolVersion,
-) -> HashMap<Identifier, Vec<minecraft_packets::configuration::data::registry_entry::RegistryEntry>>
-{
+) -> HashMap<Identifier, Vec<RegistryEntry>> {
     let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
     let version_directory = PathBuf::from(data_dir)
         .join(protocol_version.to_string())
         .join("data/minecraft");
     let registries = get_all_registries(&version_directory);
 
-    let mut grouped: HashMap<
-        Identifier,
-        Vec<minecraft_packets::configuration::data::registry_entry::RegistryEntry>,
-    > = HashMap::new();
+    let mut grouped: HashMap<Identifier, Vec<RegistryEntry>> = HashMap::new();
 
     for registry in &registries {
-        let entry = minecraft_packets::configuration::data::registry_entry::RegistryEntry {
+        let entry = RegistryEntry {
             entry_id: Identifier::minecraft(&registry.entry_id),
             has_data: true,
             nbt: Some(registry.nbt.clone()),
@@ -116,7 +113,7 @@ pub fn get_registry_codec(protocol_version: ProtocolVersion) -> Nbt {
     }
 }
 
-fn get_all_registries(root_directory: &Path) -> Vec<RegistryEntry> {
+fn get_all_registries(root_directory: &Path) -> Vec<DataRegistryEntry> {
     WalkDir::new(root_directory)
         .into_iter()
         .filter_map(|e| e.ok())
@@ -130,7 +127,7 @@ fn get_all_registries(root_directory: &Path) -> Vec<RegistryEntry> {
 }
 
 #[derive(Debug)]
-pub struct RegistryEntry {
+pub struct DataRegistryEntry {
     pub registry_id: String,
     pub entry_id: String,
     pub nbt: Nbt,
@@ -139,7 +136,7 @@ pub struct RegistryEntry {
 fn json_to_nbt(
     root_directory: &Path,
     path: &Path,
-) -> Result<RegistryEntry, Box<dyn std::error::Error>> {
+) -> Result<DataRegistryEntry, Box<dyn std::error::Error>> {
     if !path.is_file() || path.extension().and_then(|s| s.to_str()) != Some("json") {
         return Err(format!("{:?} not a json file", path).into());
     }
@@ -149,7 +146,7 @@ fn json_to_nbt(
     let json = get_json_files(path)?;
     let nbt = Nbt::from_json(&json, None).to_nameless_compound();
 
-    Ok(RegistryEntry {
+    Ok(DataRegistryEntry {
         registry_id,
         entry_id,
         nbt,

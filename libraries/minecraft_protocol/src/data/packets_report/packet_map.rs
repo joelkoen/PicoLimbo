@@ -1,7 +1,6 @@
+use crate::protocol_version::ProtocolVersion;
+use crate::state::State;
 use anyhow::anyhow;
-use minecraft_protocol::protocol_version::ProtocolVersion;
-use minecraft_protocol::state::State;
-use serde::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -156,8 +155,8 @@ impl PacketMap {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use minecraft_protocol::protocol_version::ProtocolVersion;
-    use minecraft_protocol::state::State;
+    use crate::protocol_version::ProtocolVersion;
+    use crate::state::State;
     use std::path::PathBuf;
 
     #[test]
@@ -236,7 +235,7 @@ mod tests {
         let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
-            .join("data/generated");
+            .join("../../../../../data/generated");
         PacketMap::new(data_dir)
     }
 }

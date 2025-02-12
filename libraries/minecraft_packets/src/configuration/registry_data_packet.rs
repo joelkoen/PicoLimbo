@@ -1,4 +1,4 @@
-use crate::configuration::data::registry_entry::RegistryEntry;
+use minecraft_protocol::data::registry::registry_entry::RegistryEntry;
 use minecraft_protocol::prelude::*;
 
 /// This packet is to use with >= 1.20.5

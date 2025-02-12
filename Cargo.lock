@@ -299,11 +299,15 @@ dependencies = [
 name = "minecraft_protocol"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "macros",
  "nbt",
  "packet_serializer",
+ "serde",
+ "serde_json",
  "thiserror",
  "uuid",
+ "walkdir",
 ]
 
 [[package]]

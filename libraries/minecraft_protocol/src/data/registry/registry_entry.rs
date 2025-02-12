@@ -1,4 +1,4 @@
-use minecraft_protocol::prelude::*;
+use crate::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug)]
