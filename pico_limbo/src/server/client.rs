@@ -1,5 +1,5 @@
+use crate::data::packets_report::packet_map::PacketMap;
 use crate::server::game_profile::GameProfile;
-use crate::server::packet_map::PacketMap;
 use crate::server::server::NamedPacket;
 use minecraft_packets::play::client_bound_keep_alive_packet::ClientBoundKeepAlivePacket;
 use minecraft_protocol::prelude::{EncodePacket, PacketId};
