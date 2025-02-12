@@ -1,5 +1,5 @@
-use crate::server::protocol_version::ProtocolVersion;
 use minecraft_protocol::prelude::{Identifier, Nbt};
+use minecraft_protocol::protocol_version::ProtocolVersion;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;

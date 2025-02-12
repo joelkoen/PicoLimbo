@@ -3,7 +3,6 @@ mod data;
 mod handlers;
 mod registry;
 mod server;
-mod state;
 
 use crate::cli::Cli;
 use crate::handlers::configuration::{on_acknowledge_configuration, on_plugin_message};

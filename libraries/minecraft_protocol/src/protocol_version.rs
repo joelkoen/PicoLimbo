@@ -1,4 +1,4 @@
-use minecraft_protocol::prelude::Pvn;
+use macros::Pvn;
 use std::cmp::Ordering;
 
 #[derive(Default, Clone, Debug, Pvn, Hash)]

@@ -1,6 +1,6 @@
 use crate::data::packets_report::packet_mapping::PacketMapping;
-use crate::server::protocol_version::ProtocolVersion;
-use crate::state::State;
+use minecraft_protocol::protocol_version::ProtocolVersion;
+use minecraft_protocol::state::State;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
@@ -80,8 +80,8 @@ impl PacketMap {
 #[cfg(test)]
 mod tests {
     use crate::server::packet_map::PacketMap;
-    use crate::server::protocol_version::ProtocolVersion;
-    use crate::state::State;
+    use minecraft_protocol::protocol_version::ProtocolVersion;
+    use minecraft_protocol::state::State;
     use std::path::PathBuf;
 
     #[test]
