@@ -1,4 +1,4 @@
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
 use nbt::prelude::Nbt;
 use thiserror::Error;
 
@@ -22,7 +22,7 @@ impl From<std::io::Error> for NbtEncodeError {
     }
 }
 
-impl SerializePacketData for Nbt {
+impl EncodePacketField for Nbt {
     type Error = NbtEncodeError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

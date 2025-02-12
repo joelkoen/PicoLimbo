@@ -38,7 +38,7 @@ impl From<std::convert::Infallible> for ChunkSectionError {
     }
 }
 
-impl<T: DeserializePacketData> From<LengthPaddedVecDecodeError<T>> for ChunkSectionError {
+impl<T: DecodePacketField> From<LengthPaddedVecDecodeError<T>> for ChunkSectionError {
     fn from(_: LengthPaddedVecDecodeError<T>) -> Self {
         ChunkSectionError::EncodeError
     }
@@ -50,7 +50,7 @@ impl From<PaletteContainerError> for ChunkSectionError {
     }
 }
 
-impl SerializePacketData for ChunkSection {
+impl EncodePacketField for ChunkSection {
     type Error = ChunkSectionError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

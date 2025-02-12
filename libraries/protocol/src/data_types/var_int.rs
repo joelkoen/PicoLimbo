@@ -1,5 +1,5 @@
-use crate::deserialize_packet::DeserializePacketData;
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
+use crate::traits::decode_packet_field::DecodePacketField;
 use thiserror::Error;
 
 pub const SEGMENT_BITS: u8 = 0x7F;
@@ -26,7 +26,7 @@ impl VarInt {
     }
 }
 
-impl DeserializePacketData for VarInt {
+impl DecodePacketField for VarInt {
     type Error = VarIntParseError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -57,7 +57,7 @@ impl DeserializePacketData for VarInt {
     }
 }
 
-impl SerializePacketData for VarInt {
+impl EncodePacketField for VarInt {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -80,7 +80,7 @@ impl SerializePacketData for VarInt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::{DeserializePacketData, SerializePacketData};
+    use crate::prelude::{DecodePacketField, EncodePacketField};
 
     fn get_test_cases() -> Vec<(Vec<u8>, i32)> {
         vec![

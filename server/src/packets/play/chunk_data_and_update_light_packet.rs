@@ -57,7 +57,7 @@ pub struct BlockEntity {
     // TODO: Implement BlockEntity
 }
 
-impl SerializePacketData for BlockEntity {
+impl EncodePacketField for BlockEntity {
     type Error = std::convert::Infallible;
 
     fn encode(&self, _bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -73,7 +73,7 @@ pub struct Light {
     block_light_array: LengthPaddedVec<i8>,
 }
 
-impl SerializePacketData for Light {
+impl EncodePacketField for Light {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

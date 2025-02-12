@@ -1,5 +1,5 @@
-use crate::deserialize_packet::DeserializePacketData;
-use crate::prelude::{SerializePacketData, VarInt};
+use crate::prelude::{EncodePacketField, VarInt};
+use crate::traits::decode_packet_field::DecodePacketField;
 use std::fmt::Debug;
 use thiserror::Error;
 
@@ -8,14 +8,14 @@ use thiserror::Error;
 pub struct LengthPaddedVec<T>(pub Vec<T>);
 
 #[derive(Error, Debug)]
-pub enum LengthPaddedVecDecodeError<T: DeserializePacketData> {
+pub enum LengthPaddedVecDecodeError<T: DecodePacketField> {
     #[error("vec length is invalid")]
     InvalidVecLength,
     #[error("error while decoding a value from the vec; error={0}")]
     DecodeError(T::Error),
 }
 
-impl<T: DeserializePacketData + Debug> DeserializePacketData for LengthPaddedVec<T> {
+impl<T: DecodePacketField + Debug> DecodePacketField for LengthPaddedVec<T> {
     type Error = LengthPaddedVecDecodeError<T>;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -39,7 +39,7 @@ pub enum LengthPaddedVecEncodeError {
     EncodeError,
 }
 
-impl<T: SerializePacketData> SerializePacketData for LengthPaddedVec<T> {
+impl<T: EncodePacketField> EncodePacketField for LengthPaddedVec<T> {
     type Error = LengthPaddedVecEncodeError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -66,8 +66,8 @@ impl<T> From<Vec<T>> for LengthPaddedVec<T> {
 mod tests {
     use crate::data_types::length_padded_vec::LengthPaddedVec;
     use crate::data_types::var_int::VarInt;
-    use crate::deserialize_packet::DeserializePacketData;
-    use crate::prelude::SerializePacketData;
+    use crate::prelude::EncodePacketField;
+    use crate::traits::decode_packet_field::DecodePacketField;
 
     #[test]
     fn test_vec_decode() {

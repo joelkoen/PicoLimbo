@@ -1,4 +1,4 @@
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -7,7 +7,7 @@ pub enum VecEncodeError {
     EncodeError,
 }
 
-impl<T: SerializePacketData> SerializePacketData for Vec<T> {
+impl<T: EncodePacketField> EncodePacketField for Vec<T> {
     type Error = VecEncodeError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -23,7 +23,7 @@ impl<T: SerializePacketData> SerializePacketData for Vec<T> {
 #[cfg(test)]
 mod tests {
     use crate::data_types::var_int::VarInt;
-    use crate::prelude::SerializePacketData;
+    use crate::prelude::EncodePacketField;
 
     #[test]
     fn test_vec_encode() {

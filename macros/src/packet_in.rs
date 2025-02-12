@@ -31,14 +31,14 @@ pub fn expand_parse_packet_in_derive(input: TokenStream) -> TokenStream {
         if let Some(version_range) = version_range {
             quote! {
                 let #field_name = if (#version_range).contains(&protocol_version) {
-                    <#field_type as DeserializePacketData>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?
+                    <#field_type as DecodePacketField>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?
                 } else {
                     #field_type::default()
                 };
             }
         } else {
             quote! {
-                let #field_name = <#field_type as DeserializePacketData>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?;
+                let #field_name = <#field_type as DecodePacketField>::decode(bytes, &mut index).map_err(|_| DecodePacketError)?;
             }
         }
     });

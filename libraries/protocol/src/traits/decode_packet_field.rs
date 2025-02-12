@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-pub trait DeserializePacketData: Sized {
+pub trait DecodePacketField: Sized {
     type Error: std::error::Error;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error>;
@@ -17,7 +17,7 @@ pub enum DeserializeNumberError {
 macro_rules! impl_deserialize_packet_data {
     ($($t:ty),*) => {
         $(
-            impl DeserializePacketData for $t {
+            impl DecodePacketField for $t {
                 type Error = DeserializeNumberError;
 
                 fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -38,7 +38,7 @@ macro_rules! impl_deserialize_packet_data {
 
 impl_deserialize_packet_data!(i64, i32, f32, f64, i8, u16, u8);
 
-impl DeserializePacketData for bool {
+impl DecodePacketField for bool {
     type Error = std::convert::Infallible;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {

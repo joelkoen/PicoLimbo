@@ -25,7 +25,7 @@ pub enum DecodePacketError {
     String(#[from] StringDecodingError),
 }
 
-impl DeserializePacketData for KnownPack {
+impl DecodePacketField for KnownPack {
     type Error = DecodePacketError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -41,7 +41,7 @@ impl DeserializePacketData for KnownPack {
     }
 }
 
-impl SerializePacketData for KnownPack {
+impl EncodePacketField for KnownPack {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

@@ -1,8 +1,8 @@
-use crate::deserialize_packet::DeserializePacketData;
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
+use crate::traits::decode_packet_field::DecodePacketField;
 use uuid::Uuid;
 
-impl DeserializePacketData for Uuid {
+impl DecodePacketField for Uuid {
     type Error = std::convert::Infallible;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -13,7 +13,7 @@ impl DeserializePacketData for Uuid {
     }
 }
 
-impl SerializePacketData for Uuid {
+impl EncodePacketField for Uuid {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

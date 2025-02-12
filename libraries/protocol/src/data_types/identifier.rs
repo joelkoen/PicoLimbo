@@ -1,6 +1,6 @@
 use crate::data_types::string::StringDecodingError;
-use crate::deserialize_packet::DeserializePacketData;
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
+use crate::traits::decode_packet_field::DecodePacketField;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -45,7 +45,7 @@ impl Display for Identifier {
     }
 }
 
-impl DeserializePacketData for Identifier {
+impl DecodePacketField for Identifier {
     type Error = StringDecodingError;
 
     /// Decodes an identifier.
@@ -64,7 +64,7 @@ impl DeserializePacketData for Identifier {
     }
 }
 
-impl SerializePacketData for Identifier {
+impl EncodePacketField for Identifier {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -76,7 +76,7 @@ impl SerializePacketData for Identifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::{DeserializePacketData, SerializePacketData};
+    use crate::prelude::{DecodePacketField, EncodePacketField};
 
     #[test]
     fn test_identifier() {

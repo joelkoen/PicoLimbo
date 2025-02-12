@@ -1,8 +1,7 @@
 extern crate core;
 
 mod data_types;
-mod deserialize_packet;
-mod serialize_packet;
+mod traits;
 
 pub mod prelude {
     pub use crate::data_types::bit_set::BitSet;
@@ -15,8 +14,8 @@ pub mod prelude {
     pub use crate::data_types::string::StringDecodingError;
     pub use crate::data_types::var_int::{VarInt, VarIntParseError};
     pub use crate::data_types::vec_no_length::VecEncodeError;
-    pub use crate::deserialize_packet::DeserializePacketData;
-    pub use crate::serialize_packet::SerializePacketData;
+    pub use crate::traits::decode_packet_field::DecodePacketField;
+    pub use crate::traits::encode_packet_field::EncodePacketField;
     pub use macros::packet_id;
     pub use macros::PacketIn;
     pub use macros::PacketOut;

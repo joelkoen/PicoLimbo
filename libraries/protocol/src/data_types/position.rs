@@ -1,5 +1,5 @@
-use crate::deserialize_packet::{DeserializeNumberError, DeserializePacketData};
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
+use crate::traits::decode_packet_field::{DecodePacketField, DeserializeNumberError};
 
 #[derive(Debug)]
 pub struct Position {
@@ -14,7 +14,7 @@ impl Position {
     }
 }
 
-impl DeserializePacketData for Position {
+impl DecodePacketField for Position {
     type Error = DeserializeNumberError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -26,7 +26,7 @@ impl DeserializePacketData for Position {
     }
 }
 
-impl SerializePacketData for Position {
+impl EncodePacketField for Position {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

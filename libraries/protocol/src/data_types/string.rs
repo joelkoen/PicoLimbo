@@ -1,5 +1,5 @@
-use crate::data_types::var_int::{CONTINUE_BIT, VarInt};
-use crate::prelude::{DeserializePacketData, SerializePacketData};
+use crate::data_types::var_int::{VarInt, CONTINUE_BIT};
+use crate::prelude::{DecodePacketField, EncodePacketField};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -16,7 +16,7 @@ pub enum StringDecodingError {
 
 const MAX_STRING_SIZE: usize = 32767;
 
-impl DeserializePacketData for String {
+impl DecodePacketField for String {
     type Error = StringDecodingError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -45,7 +45,7 @@ impl DeserializePacketData for String {
     }
 }
 
-impl SerializePacketData for String {
+impl EncodePacketField for String {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -57,7 +57,7 @@ impl SerializePacketData for String {
 
 #[cfg(test)]
 mod test {
-    use crate::prelude::SerializePacketData;
+    use crate::prelude::EncodePacketField;
 
     #[test]
     fn test_encode_string() {

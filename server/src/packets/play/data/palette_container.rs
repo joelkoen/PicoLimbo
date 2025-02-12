@@ -39,7 +39,7 @@ impl From<LengthPaddedVecEncodeError> for PaletteContainerError {
     }
 }
 
-impl SerializePacketData for PaletteContainer {
+impl EncodePacketField for PaletteContainer {
     type Error = PaletteContainerError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

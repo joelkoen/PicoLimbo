@@ -1,4 +1,4 @@
-pub trait SerializePacketData: Sized {
+pub trait EncodePacketField: Sized {
     type Error: std::error::Error;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error>;
@@ -7,7 +7,7 @@ pub trait SerializePacketData: Sized {
 macro_rules! impl_serialize_packet_data {
     ($($t:ty),*) => {
         $(
-            impl SerializePacketData for $t {
+            impl EncodePacketField for $t {
                 type Error = std::convert::Infallible;
 
                 fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -21,7 +21,7 @@ macro_rules! impl_serialize_packet_data {
 
 impl_serialize_packet_data!(i64, i32, f32, f64, i8, u8);
 
-impl SerializePacketData for bool {
+impl EncodePacketField for bool {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
@@ -32,7 +32,7 @@ impl SerializePacketData for bool {
 
 #[cfg(test)]
 mod test {
-    use crate::prelude::SerializePacketData;
+    use crate::prelude::EncodePacketField;
 
     #[test]
     fn test_encode_i64() {

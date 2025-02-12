@@ -16,7 +16,7 @@ pub struct Property {
     pub signature: Option<String>,
 }
 
-impl SerializePacketData for Property {
+impl EncodePacketField for Property {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

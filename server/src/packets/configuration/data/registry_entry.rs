@@ -18,7 +18,7 @@ pub enum RegistryEntryEncodeError {
     Infallible,
 }
 
-impl SerializePacketData for RegistryEntry {
+impl EncodePacketField for RegistryEntry {
     type Error = RegistryEntryEncodeError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {

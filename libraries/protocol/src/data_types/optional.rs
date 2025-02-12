@@ -1,5 +1,5 @@
-use crate::deserialize_packet::DeserializePacketData;
-use crate::prelude::SerializePacketData;
+use crate::prelude::EncodePacketField;
+use crate::traits::decode_packet_field::DecodePacketField;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -9,7 +9,7 @@ pub enum DecodeOptionError {
     Infallible,
 }
 
-impl<T: DeserializePacketData> DeserializePacketData for Option<T> {
+impl<T: DecodePacketField> DecodePacketField for Option<T> {
     type Error = DecodeOptionError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
@@ -30,7 +30,7 @@ pub enum EncodeOptionError {
     EncodeError,
 }
 
-impl<T: SerializePacketData> SerializePacketData for Option<T> {
+impl<T: EncodePacketField> EncodePacketField for Option<T> {
     type Error = EncodeOptionError;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
