@@ -1,5 +1,5 @@
 use crate::get_packet_length::{get_packet_length, PacketLengthParseError, MAXIMUM_PACKET_LENGTH};
-use crate::network::raw_packet::RawPacket;
+use crate::raw_packet::RawPacket;
 use protocol::prelude::*;
 use std::convert::Infallible;
 use thiserror::Error;

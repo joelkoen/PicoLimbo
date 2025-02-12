@@ -1,11 +1,11 @@
-use crate::network::packet_stream::{PacketStream, PacketStreamError};
-use crate::network::raw_packet::RawPacket;
 use crate::server::game_profile::GameProfile;
 use crate::server::packet_map::PacketMap;
 use crate::server::protocol_version::ProtocolVersion;
 use crate::server::server::NamedPacket;
 use crate::state::State;
 use minecraft_packets::play::client_bound_keep_alive_packet::ClientBoundKeepAlivePacket;
+use net::packet_stream::{PacketStream, PacketStreamError};
+use net::raw_packet::RawPacket;
 use protocol::prelude::{EncodePacket, PacketId};
 use rand::Rng;
 use std::sync::Arc;
