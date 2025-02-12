@@ -1,7 +1,6 @@
 mod cli;
 mod data;
 mod handlers;
-mod registry;
 mod server;
 
 use crate::cli::Cli;

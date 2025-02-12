@@ -1,4 +1,4 @@
-use crate::registry::get_all_registries::{get_grouped_registries, get_registry_codec};
+use crate::data::registry::get_all_registries::{get_grouped_registries, get_registry_codec};
 use crate::server::client::{Client, SharedClient};
 use minecraft_packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
 use minecraft_packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
