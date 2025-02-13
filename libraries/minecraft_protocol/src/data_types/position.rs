@@ -1,7 +1,7 @@
 use crate::prelude::EncodePacketField;
 use crate::traits::decode_packet_field::{DecodePacketField, DeserializeNumberError};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Position {
     x: f64,
     y: f64,

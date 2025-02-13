@@ -27,6 +27,9 @@ pub struct SynchronizePlayerPositionPacket {
     pub flags: u8,
     #[pvn(..768)]
     pub teleport_id: VarInt,
+    /// True if the player should dismount their vehicle.
+    #[pvn(..762)]
+    pub dismount_vehicle: bool,
 }
 
 impl Default for SynchronizePlayerPositionPacket {
@@ -45,6 +48,7 @@ impl Default for SynchronizePlayerPositionPacket {
             v_1_21_2_flags: 0x08,
             flags: 0,
             teleport_id: VarInt::default(),
+            dismount_vehicle: false,
         }
     }
 }
