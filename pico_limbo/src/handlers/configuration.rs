@@ -60,6 +60,7 @@ pub async fn on_acknowledge_configuration(
     send_play_packets(client.lock().await).await;
 }
 
+/// Switch to the Play state and send required packets to spawn the player in the world
 pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     client.update_state(State::Play);
 

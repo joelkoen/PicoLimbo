@@ -3,7 +3,7 @@
 > [!WARNING]
 > This software is highly experimental. Use at your own risks and report any bugs by submitting an issue on GitHub.
 
-An attempt at writing a lightweight Minecraft server from scratch in Rust. Supports 1.20 and above.
+An attempt at writing a lightweight Minecraft server from scratch in Rust. Supports 1.19 and above.
 
 This is intended to be used as an AFK or waiting server.
 

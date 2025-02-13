@@ -13,6 +13,13 @@ pub async fn on_login_start(client: SharedClient, packet: LoginStartPacket) {
     let game_profile: GameProfile = packet.into();
     let mut client = client.lock().await;
 
+    client.set_game_profile(game_profile.clone());
+    info!(
+        "UUID of player {} is {}",
+        game_profile.username(),
+        game_profile.uuid()
+    );
+
     if client.protocol_version() >= ProtocolVersion::V1_21_2 {
         let packet = LoginSuccessPacket {
             uuid: game_profile.uuid(),
@@ -28,16 +35,6 @@ pub async fn on_login_start(client: SharedClient, packet: LoginStartPacket) {
             strict_error_handling: false,
         };
         client.send_packet(packet).await;
-    }
-
-    client.set_game_profile(game_profile.clone());
-    info!(
-        "UUID of player {} is {}",
-        game_profile.username(),
-        game_profile.uuid()
-    );
-
-    if client.protocol_version() < ProtocolVersion::V1_20_2 {
         send_play_packets(client).await;
     }
 }

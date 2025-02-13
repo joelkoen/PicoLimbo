@@ -47,9 +47,6 @@
   },
   "play": {
     "clientbound": {
-      "minecraft:game_event": {
-        "protocol_id": 32
-      },
       "minecraft:keep_alive": {
         "protocol_id": 36
       },
