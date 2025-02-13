@@ -18,6 +18,8 @@ pub enum ProtocolVersion {
     V1_20_2,
     #[pvn(763)]
     V1_20,
+    #[pvn(762)]
+    V1_19_4,
 }
 
 impl PartialEq for ProtocolVersion {

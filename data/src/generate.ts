@@ -35,6 +35,7 @@ const SUPPORTED_VERSIONS = [
     "1.20.3",
     "1.20.2",
     "1.20",
+    "1.19.4",
 ];
 
 (async () => {

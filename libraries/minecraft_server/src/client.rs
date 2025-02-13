@@ -116,6 +116,10 @@ impl Client {
     }
 
     pub fn set_protocol(&mut self, protocol_version: ProtocolVersion) {
+        debug!(
+            "Client protocol version is {}",
+            protocol_version.to_string()
+        );
         self.version = Some(protocol_version);
     }
 

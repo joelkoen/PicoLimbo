@@ -7,7 +7,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/src/app/target \
-    cargo build --release --locked && \
+    cargo build --release --locked --package pico_limbo --bin pico_limbo && \
     cp /usr/src/app/target/release/pico_limbo /usr/bin/pico_limbo
 
 FROM alpine

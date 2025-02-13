@@ -65,6 +65,7 @@ pub struct LoginPacket {
     /// The location that the player died at.
     pub death_location: Option<Position>,
     /// The number of ticks until the player can use the portal again.
+    #[pvn(763..)]
     pub portal_cooldown: VarInt,
     #[pvn(768..)]
     pub sea_level: VarInt,
