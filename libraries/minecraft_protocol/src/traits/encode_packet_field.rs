@@ -19,7 +19,7 @@ macro_rules! impl_serialize_packet_data {
     };
 }
 
-impl_serialize_packet_data!(i64, i32, f32, f64, i8, u8);
+impl_serialize_packet_data!(i64, i32, f32, f64, u16, i8, u8);
 
 impl EncodePacketField for bool {
     type Error = std::convert::Infallible;

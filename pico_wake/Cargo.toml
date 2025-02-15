@@ -1,0 +1,17 @@
+[package]
+name = "pico_wake"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.43", features = ["process"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+minecraft_protocol = { path = "../libraries/minecraft_protocol" }
+minecraft_packets = { path = "../libraries/minecraft_packets" }
+minecraft_server = { path = "../libraries/minecraft_server" }
+net = { path = "../libraries/net" }
+thiserror = "2.0"
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+async-trait = "0.1"

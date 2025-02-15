@@ -2,7 +2,6 @@ name: Build and Publish Docker Images
 
 on:
   push:
-    branches: [ 'master' ]
 
 env:
   REGISTRY: ghcr.io
@@ -48,6 +47,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-pterodactyl:
+    if: github.ref == 'refs/heads/master'
     needs: build-standalone
     runs-on: ubuntu-latest
     permissions:

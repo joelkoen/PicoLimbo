@@ -77,6 +77,18 @@ impl EncodePacketField for VarInt {
     }
 }
 
+impl From<i32> for VarInt {
+    fn from(value: i32) -> Self {
+        Self::new(value)
+    }
+}
+
+impl From<u32> for VarInt {
+    fn from(value: u32) -> Self {
+        Self::new(value as i32)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

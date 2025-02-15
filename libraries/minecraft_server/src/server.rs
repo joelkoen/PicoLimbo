@@ -14,11 +14,6 @@ use tokio::sync::Mutex;
 use tokio::time::interval;
 use tracing::{debug, error, info};
 
-pub struct NamedPacket {
-    pub name: String,
-    pub data: Vec<u8>,
-}
-
 pub struct Server {
     handlers: HashMap<String, Box<dyn Handler>>,
     listen_address: String,

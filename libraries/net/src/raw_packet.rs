@@ -14,7 +14,7 @@ impl RawPacket {
     }
 
     /// Creates a new raw packet from a serializable packet struct.
-    pub fn from_packet<T>(packet_id: u8, version_number: u32, packet: T) -> anyhow::Result<Self>
+    pub fn from_packet<T>(packet_id: u8, version_number: u32, packet: &T) -> anyhow::Result<Self>
     where
         T: EncodePacket + PacketId,
     {

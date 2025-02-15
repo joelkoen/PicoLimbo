@@ -1,5 +1,5 @@
 use crate::client::SharedClient;
-use crate::server::NamedPacket;
+use crate::named_packet::NamedPacket;
 use async_trait::async_trait;
 use minecraft_protocol::prelude::DecodePacket;
 use std::future::Future;
@@ -35,7 +35,7 @@ where
     async fn handle(&self, client: SharedClient, raw_packet: NamedPacket) {
         let packet = async {
             let client = client.lock().await;
-            T::decode(&raw_packet.data, client.protocol_version().version_number()).unwrap()
+            raw_packet.decode(client.protocol_version()).unwrap()
         }
         .await;
         (self.listener_fn)(client, packet).await;

@@ -59,6 +59,10 @@ where
         self.stream.flush().await?;
         Ok(())
     }
+
+    pub fn get_stream(&mut self) -> &mut Stream {
+        &mut self.stream
+    }
 }
 
 #[derive(Error, Debug)]

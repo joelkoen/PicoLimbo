@@ -1,25 +1,22 @@
-use crate::game_profile::GameProfile;
-use crate::named_packet::NamedPacket;
-use minecraft_packets::play::client_bound_keep_alive_packet::ClientBoundKeepAlivePacket;
+use minecraft_packets::handshaking::handshake_packet::HandshakePacket;
 use minecraft_protocol::data::packets_report::packet_map::PacketMap;
 use minecraft_protocol::prelude::{EncodePacket, PacketId};
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
+use minecraft_server::named_packet::NamedPacket;
 use net::packet_stream::{PacketStream, PacketStreamError};
 use net::raw_packet::RawPacket;
-use rand::Rng;
-use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpStream;
-use tokio::sync::Mutex;
 use tracing::{debug, error};
 
 pub struct Client {
     state: State,
     packet_reader: PacketStream<TcpStream>,
     packet_map: PacketMap,
-    game_profile: Option<GameProfile>,
     version: Option<ProtocolVersion>,
+    backend_server_available: bool,
+    handshake_packet_replay: Option<HandshakePacket>,
 }
 
 #[derive(Debug, Error)]
@@ -37,8 +34,9 @@ impl Client {
             packet_reader,
             packet_map,
             state: State::default(),
-            game_profile: None,
             version: None,
+            backend_server_available: false,
+            handshake_packet_replay: None,
         }
     }
 
@@ -99,22 +97,6 @@ impl Client {
         }
     }
 
-    pub fn state(&self) -> &State {
-        &self.state
-    }
-
-    pub async fn send_keep_alive(&mut self) {
-        // Send Keep Alive
-        if self.state() == &State::Play {
-            let packet = ClientBoundKeepAlivePacket::new(get_random());
-            self.send_packet(packet).await;
-        }
-    }
-
-    pub fn set_game_profile(&mut self, profile: GameProfile) {
-        self.game_profile = Some(profile);
-    }
-
     pub fn set_protocol(&mut self, protocol_version: ProtocolVersion) {
         debug!(
             "Client protocol version is {}",
@@ -127,6 +109,23 @@ impl Client {
         self.version.clone().unwrap_or_default()
     }
 
+    pub fn set_backend_server_available(&mut self, packet: HandshakePacket) {
+        self.backend_server_available = true;
+        self.handshake_packet_replay = Some(packet);
+    }
+
+    pub fn get_handshake_packet_replay(&self) -> &Option<HandshakePacket> {
+        &self.handshake_packet_replay
+    }
+
+    pub fn is_backend_server_available(&self) -> bool {
+        self.backend_server_available
+    }
+
+    pub fn get_stream(&mut self) -> &mut TcpStream {
+        self.packet_reader.get_stream()
+    }
+
     fn get_packet_name_from_id(&self, packet_id: u8) -> Option<String> {
         self.packet_map
             .get_packet_name(&self.protocol_version(), &self.state, packet_id)
@@ -136,10 +135,3 @@ impl Client {
             })
     }
 }
-
-fn get_random() -> i64 {
-    let mut rng = rand::rng();
-    rng.random()
-}
-
-pub type SharedClient = Arc<Mutex<Client>>;
