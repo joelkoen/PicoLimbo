@@ -163,7 +163,7 @@ impl ServerManager {
             tokio::select! {
                 _ = tokio::time::sleep(delay) => {
                     if let Err(e) = Self::stop_now(server).await {
-                        error!("Failed to stop server: {:?}", e);
+                        error!("Failed to stop server: {}", e);
                     }
                 }
                 _ = token.cancelled() => {

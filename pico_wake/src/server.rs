@@ -29,12 +29,16 @@ impl<C: ConnectionHandler + Send + Sync + 'static> Server<C> {
                 _ = self.accept() => {},
                 _ = sigint.recv() => {
                     info!("SIGINT received, shutting down gracefully.");
+                    break;
                 },
                 _ = sigterm.recv() => {
                     info!("SIGTERM received, shutting down gracefully.");
+                    break;
                 },
             }
         }
+
+        Ok(())
     }
 
     async fn accept(&self) {
