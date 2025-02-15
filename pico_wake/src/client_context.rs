@@ -87,10 +87,11 @@ impl ConnectionHandler for ClientContext {
 
             if client.is_backend_server_available() {
                 self.connected_players.fetch_add(1, Ordering::SeqCst);
-                {
+                if client.wants_to_login() {
                     let server_manager = self.server_manager.lock().await;
                     server_manager.cancel_stop().await;
                 }
+
                 if let Err(err) = start_proxying(&mut client, &self.backend_server_address).await {
                     error!("Failed while proxying: {err}");
                 }
@@ -104,6 +105,10 @@ impl ConnectionHandler for ClientContext {
         if player_count <= 0 {
             let server_manager = self.server_manager.lock().await;
             if server_manager.get_server_status().await != ServerStatus::Offline {
+                if client.wants_to_login() {
+                    server_manager.cancel_stop().await;
+                }
+
                 server_manager.schedule_stop(self.sleep_delay).await;
             }
         }

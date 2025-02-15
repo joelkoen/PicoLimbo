@@ -18,6 +18,10 @@ pub async fn on_handshake(
     client.set_protocol(packet.get_protocol());
 
     if let Ok(state) = packet.get_next_state() {
+        if state == State::Login {
+            client.set_wants_to_login(true);
+        }
+
         client.update_state(state);
     }
 
@@ -25,7 +29,9 @@ pub async fn on_handshake(
         error!("Ping server error: {}", err);
         if let Ok(state) = packet.get_next_state() {
             if state == State::Login {
-                server_manager.lock().await.start_server().await;
+                if let Err(err) = server_manager.lock().await.start_server().await {
+                    error!("Failed to start server: {}", err);
+                }
             }
         }
     } else {

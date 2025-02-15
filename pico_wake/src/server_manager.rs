@@ -5,171 +5,197 @@ use std::sync::{
 };
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::process::Command;
-use tokio::sync::{oneshot, Mutex};
+use tokio::process::{Child, ChildStdin, Command};
+use tokio::sync::Mutex;
+use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
 pub struct ServerManager {
     start_command: String,
-    process: Arc<Mutex<Option<tokio::process::Child>>>,
-    child_stdin: Arc<Mutex<Option<tokio::process::ChildStdin>>>,
+    server: Arc<Mutex<Option<ServerProcess>>>,
     done: Arc<AtomicBool>,
-    stop_cancel: Arc<Mutex<Option<oneshot::Sender<()>>>>,
+    stop_token: Arc<Mutex<Option<CancellationToken>>>,
+}
+
+struct ServerProcess {
+    child: Child,
+    // Wrap the child's stdin so that it can be shared safely.
+    stdin: Arc<Mutex<ChildStdin>>,
+}
+
+impl ServerProcess {
+    pub fn new(child: Child, stdin: ChildStdin) -> Self {
+        Self {
+            child,
+            stdin: Arc::new(Mutex::new(stdin)),
+        }
+    }
 }
 
 impl ServerManager {
     const DONE_MESSAGE: &'static str = ")! For help, type ";
     const STOP_COMMAND: &'static [u8; 5] = b"stop\n";
 
+    /// Creates a new ServerManager and spawns a global input listener.
     pub fn new(start_command: String) -> Self {
-        Self {
+        let manager = Self {
             start_command,
-            process: Arc::new(Mutex::new(None)),
-            child_stdin: Arc::new(Mutex::new(None)),
+            server: Arc::new(Mutex::new(None)),
             done: Arc::new(AtomicBool::new(false)),
-            stop_cancel: Arc::new(Mutex::new(None)),
-        }
+            stop_token: Arc::new(Mutex::new(None)),
+        };
+
+        // Always listen to parent's stdin.
+        manager.spawn_input_listener();
+        manager
     }
 
-    /// Starts the server asynchronously.
-    ///
-    /// Spawns a background task that:
-    /// - Reads stdout line-by-line, setting `done` to true if a line contains "Done".
-    /// - Waits for the process to exit and then resets the `done` flag.
-    pub async fn start_server(&mut self) {
-        // Check if the server is already running.
-        if self.process.lock().await.is_some() {
-            error!("Server is already running!");
-            return;
+    /// Spawns a task that continuously reads from the parent's stdin.
+    fn spawn_input_listener(&self) {
+        // Clone the Arc for use inside the task.
+        let server_clone = self.server.clone();
+        tokio::spawn(async move {
+            let stdin = tokio::io::stdin();
+            let mut reader = BufReader::new(stdin);
+            let mut line = String::new();
+            loop {
+                line.clear();
+                match reader.read_line(&mut line).await {
+                    Ok(0) => break, // EOF reached.
+                    Ok(_) => {
+                        // Lock the server to see if one is running.
+                        let maybe_proc = server_clone.lock().await;
+                        if let Some(proc) = maybe_proc.as_ref() {
+                            let mut child_stdin = proc.stdin.lock().await;
+                            if let Err(e) = child_stdin.write_all(line.as_bytes()).await {
+                                error!("Failed to send input to child process: {}", e);
+                            }
+                            if let Err(e) = child_stdin.flush().await {
+                                error!("Failed to flush child's stdin: {}", e);
+                            }
+                        } else {
+                            error!("Server is not running");
+                        }
+                    }
+                    Err(e) => {
+                        error!("Error reading from parent's stdin: {}", e);
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    pub async fn start_server(&self) -> anyhow::Result<()> {
+        let mut server_lock = self.server.lock().await;
+        if server_lock.is_some() {
+            anyhow::bail!("Server is already running");
         }
 
-        // Split the start_command into program and arguments.
         let mut parts = self.start_command.split_whitespace();
-        let program = match parts.next() {
-            Some(p) => p,
-            None => {
-                error!("No command provided to start the server.");
-                return;
-            }
-        };
+        let program = parts
+            .next()
+            .ok_or_else(|| anyhow::anyhow!("No command provided to start the server"))?;
         let args: Vec<&str> = parts.collect();
 
-        // Spawn the process with piped stdout and stdin.
-        let mut child = match Command::new(program)
+        let mut child = Command::new(program)
             .args(&args)
             .stdout(Stdio::piped())
             .stdin(Stdio::piped())
-            .spawn()
-        {
-            Ok(child) => child,
-            Err(e) => {
-                error!("Failed to start server: {}", e);
-                return;
-            }
-        };
+            .spawn()?;
 
-        let child_stdout = child.stdout.take();
-        let child_stdin = child.stdin.take();
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("Failed to capture stdout"))?;
+        let stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("Failed to capture stdin"))?;
 
-        {
-            let mut proc_lock = self.process.lock().await;
-            *proc_lock = Some(child);
-            let mut stdin_lock = self.child_stdin.lock().await;
-            *stdin_lock = child_stdin;
-        }
+        *server_lock = Some(ServerProcess::new(child, stdin));
+        drop(server_lock);
 
-        // Clone Arcs for use in the background task.
-        let process_arc = self.process.clone();
-        let done_arc = self.done.clone();
+        // Spawn the output monitor.
+        self.spawn_output_monitor(BufReader::new(stdout));
 
-        // Spawn an async task to monitor the process.
+        Ok(())
+    }
+
+    fn spawn_output_monitor(
+        &self,
+        reader: BufReader<impl tokio::io::AsyncRead + Unpin + Send + 'static>,
+    ) {
+        let done_flag = self.done.clone();
+        let server = self.server.clone();
         tokio::spawn(async move {
-            if let Some(stdout) = child_stdout {
-                let reader = BufReader::new(stdout);
-                let mut lines = reader.lines();
-                while let Ok(Some(line)) = lines.next_line().await {
-                    println!("{line}");
-                    if line.contains(Self::DONE_MESSAGE) {
-                        done_arc.store(true, Ordering::SeqCst);
-                    }
+            let mut lines = reader.lines();
+            while let Ok(Some(line)) = lines.next_line().await {
+                println!("{line}");
+                if line.contains(Self::DONE_MESSAGE) {
+                    done_flag.store(true, Ordering::SeqCst);
                 }
             }
-
-            // Wait for the process to exit.
-            if let Some(mut child_proc) = process_arc.lock().await.take() {
-                match child_proc.wait().await {
-                    Ok(status) => {
-                        debug!("Process exited with status: {:?}", status);
-                        info!("Server entering sleep state.");
-                    }
-                    Err(e) => error!("Error waiting for process: {:?}", e),
+            // When output ends, wait for the process to exit.
+            if let Some(mut proc) = server.lock().await.take() {
+                if let Err(e) = proc.child.wait().await {
+                    error!("Error waiting for process: {:?}", e);
                 }
+                info!("Server has stopped");
             }
-
-            // Reset the done flag once the process is no longer running.
-            done_arc.store(false, Ordering::SeqCst);
+            done_flag.store(false, Ordering::SeqCst);
         });
     }
 
-    /// Schedules a stop command to be sent after the given delay.
-    /// A pending delayed stop can be canceled by calling `cancel_stop`.
+    /// Schedules a stop only if no stop task is already pending.
     pub async fn schedule_stop(&self, delay: Duration) {
-        // Create a oneshot channel to enable cancellation.
-        let (cancel_tx, cancel_rx) = oneshot::channel();
-        {
-            let mut cancel_lock = self.stop_cancel.lock().await;
-            *cancel_lock = Some(cancel_tx);
+        let mut token_lock = self.stop_token.lock().await;
+        if token_lock.is_some() {
+            debug!("A stop task is already scheduled; not scheduling another.");
+            return;
         }
 
-        info!(
-            "The server is scheduled to stop in {} seconds",
-            delay.as_secs()
-        );
-        let stop_cancel_clone = self.stop_cancel.clone();
-        let child_stdin = self.child_stdin.clone();
+        let token = CancellationToken::new();
+        *token_lock = Some(token.clone());
+        info!("Server scheduled to stop in {} seconds", delay.as_secs());
+        let server = self.server.clone();
         tokio::spawn(async move {
             tokio::select! {
                 _ = tokio::time::sleep(delay) => {
-                    Self::stop_now(child_stdin).await;
+                    if let Err(e) = Self::stop_now(server).await {
+                        error!("Failed to stop server: {:?}", e);
+                    }
                 }
-                _ = cancel_rx => {
-                    info!("Delayed stop command cancelled");
+                _ = token.cancelled() => {
+                    info!("Scheduled stop cancelled");
                 }
             }
-            // Clear the cancellation token.
-            let mut cancel_lock = stop_cancel_clone.lock().await;
-            *cancel_lock = None;
         });
     }
 
-    /// Cancels any pending delayed stop command.
     pub async fn cancel_stop(&self) {
-        let mut lock = self.stop_cancel.lock().await;
-        if let Some(sender) = lock.take() {
-            let _ = sender.send(());
+        let mut token_lock = self.stop_token.lock().await;
+        if let Some(token) = token_lock.take() {
+            token.cancel();
         }
     }
 
-    /// Immediately sends the "stop" command to the server process via its stdin.
-    async fn stop_now(child_stdin: Arc<Mutex<Option<tokio::process::ChildStdin>>>) {
-        let mut lock = child_stdin.lock().await;
-        if let Some(stdin) = lock.as_mut() {
-            info!("Shutting down backend server");
-            if let Err(e) = stdin.write_all(ServerManager::STOP_COMMAND).await {
-                error!("Failed to write to server stdin: {:?}", e);
-            }
-            if let Err(e) = stdin.flush().await {
-                error!("Failed to flush server stdin: {:?}", e);
-            }
+    async fn stop_now(server: Arc<Mutex<Option<ServerProcess>>>) -> anyhow::Result<()> {
+        let mut lock = server.lock().await;
+        if let Some(ref mut proc) = *lock {
+            info!("Sending stop command to server");
+            let mut stdin = proc.stdin.lock().await;
+            stdin.write_all(Self::STOP_COMMAND).await?;
+            stdin.flush().await?;
+            Ok(())
         } else {
-            error!("Server is not running or stdin is not available.");
+            anyhow::bail!("Server is not running");
         }
     }
 
-    /// Returns the current server status.
     pub async fn get_server_status(&self) -> ServerStatus {
-        let proc_guard = self.process.lock().await;
-        if proc_guard.is_none() {
+        let server_running = self.server.lock().await.is_some();
+        if !server_running {
             ServerStatus::Offline
         } else if self.done.load(Ordering::SeqCst) {
             ServerStatus::Online
@@ -179,7 +205,7 @@ impl ServerManager {
     }
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug)]
 pub enum ServerStatus {
     Offline,
     Starting,

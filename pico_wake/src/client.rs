@@ -17,6 +17,7 @@ pub struct Client {
     version: Option<ProtocolVersion>,
     backend_server_available: bool,
     handshake_packet_replay: Option<HandshakePacket>,
+    wants_to_login: bool,
 }
 
 #[derive(Debug, Error)]
@@ -36,6 +37,7 @@ impl Client {
             state: State::default(),
             version: None,
             backend_server_available: false,
+            wants_to_login: false,
             handshake_packet_replay: None,
         }
     }
@@ -112,6 +114,14 @@ impl Client {
     pub fn set_backend_server_available(&mut self, packet: HandshakePacket) {
         self.backend_server_available = true;
         self.handshake_packet_replay = Some(packet);
+    }
+
+    pub fn set_wants_to_login(&mut self, proxy: bool) {
+        self.wants_to_login = proxy;
+    }
+
+    pub fn wants_to_login(&self) -> bool {
+        self.wants_to_login
     }
 
     pub fn get_handshake_packet_replay(&self) -> &Option<HandshakePacket> {
