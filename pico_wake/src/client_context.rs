@@ -21,7 +21,7 @@ use std::time::Duration;
 use tokio::io::copy_bidirectional;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 #[derive(Clone)]
 pub struct ClientContext {
@@ -113,6 +113,14 @@ impl ConnectionHandler for ClientContext {
             }
         }
 
+        Ok(())
+    }
+
+    async fn on_stop(&self) -> anyhow::Result<()> {
+        info!("Stopping server");
+        let server_manager = self.server_manager.lock().await;
+        server_manager.schedule_stop(Duration::ZERO).await;
+        server_manager.stop_stdin_listener();
         Ok(())
     }
 }

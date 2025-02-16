@@ -15,6 +15,7 @@ pub struct ServerManager {
     server: Arc<Mutex<Option<ServerProcess>>>,
     done: Arc<AtomicBool>,
     stop_token: Arc<Mutex<Option<CancellationToken>>>,
+    input_listener_token: CancellationToken,
 }
 
 struct ServerProcess {
@@ -43,6 +44,7 @@ impl ServerManager {
             server: Arc::new(Mutex::new(None)),
             done: Arc::new(AtomicBool::new(false)),
             stop_token: Arc::new(Mutex::new(None)),
+            input_listener_token: CancellationToken::new(),
         };
 
         // Always listen to parent's stdin.
@@ -52,38 +54,50 @@ impl ServerManager {
 
     /// Spawns a task that continuously reads from the parent's stdin.
     fn spawn_input_listener(&self) {
-        // Clone the Arc for use inside the task.
         let server_clone = self.server.clone();
+        let cancellation_token = self.input_listener_token.clone();
+
         tokio::spawn(async move {
             let stdin = tokio::io::stdin();
             let mut reader = BufReader::new(stdin);
             let mut line = String::new();
+
             loop {
-                line.clear();
-                match reader.read_line(&mut line).await {
-                    Ok(0) => break, // EOF reached.
-                    Ok(_) => {
-                        // Lock the server to see if one is running.
-                        let maybe_proc = server_clone.lock().await;
-                        if let Some(proc) = maybe_proc.as_ref() {
-                            let mut child_stdin = proc.stdin.lock().await;
-                            if let Err(e) = child_stdin.write_all(line.as_bytes()).await {
-                                error!("Failed to send input to child process: {}", e);
-                            }
-                            if let Err(e) = child_stdin.flush().await {
-                                error!("Failed to flush child's stdin: {}", e);
-                            }
-                        } else {
-                            error!("Server is not running");
-                        }
-                    }
-                    Err(e) => {
-                        error!("Error reading from parent's stdin: {}", e);
+                tokio::select! {
+                    _ = cancellation_token.cancelled() => {
+                        debug!("Input listener cancelled");
                         break;
+                    }
+                    result = reader.read_line(&mut line) => {
+                        match result {
+                            Ok(0) => break, // EOF reached.
+                            Ok(_) => {
+                                let maybe_proc = server_clone.lock().await;
+                                if let Some(proc) = maybe_proc.as_ref() {
+                                    let mut child_stdin = proc.stdin.lock().await;
+                                    if let Err(e) = child_stdin.write_all(line.as_bytes()).await {
+                                        error!("Failed to send input to child process: {}", e);
+                                    }
+                                    if let Err(e) = child_stdin.flush().await {
+                                        error!("Failed to flush child's stdin: {}", e);
+                                    }
+                                } else {
+                                    error!("Server is not running");
+                                }
+                            }
+                            Err(e) => {
+                                error!("Error reading from parent's stdin: {}", e);
+                                break;
+                            }
+                        }
                     }
                 }
             }
         });
+    }
+
+    pub fn stop_stdin_listener(&self) {
+        self.input_listener_token.cancel();
     }
 
     pub async fn start_server(&self) -> anyhow::Result<()> {

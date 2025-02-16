@@ -20,9 +20,9 @@ impl<C: ConnectionHandler + Send + Sync + 'static> Server<C> {
         })
     }
 
-    pub async fn run(&self) -> std::io::Result<()> {
-        let mut sigint = signal(SignalKind::terminate()).expect("failed to setup SIGINT handler");
-        let mut sigterm = signal(SignalKind::terminate()).expect("failed to setup SIGTERM handler");
+    pub async fn run(&self) -> anyhow::Result<()> {
+        let mut sigint = signal(SignalKind::terminate())?;
+        let mut sigterm = signal(SignalKind::terminate())?;
 
         loop {
             tokio::select! {
@@ -37,6 +37,8 @@ impl<C: ConnectionHandler + Send + Sync + 'static> Server<C> {
                 },
             }
         }
+
+        self.connection_handler.on_stop().await?;
 
         Ok(())
     }

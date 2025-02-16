@@ -26,7 +26,7 @@ pub async fn on_handshake(
     }
 
     if let Err(err) = ping_server(packet, backend_server_address).await {
-        error!("Ping server error: {}", err);
+        debug!("Ping server error: {}", err);
         if let Ok(state) = packet.get_next_state() {
             if state == State::Login {
                 if let Err(err) = server_manager.lock().await.start_server().await {
