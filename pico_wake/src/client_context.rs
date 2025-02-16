@@ -119,6 +119,7 @@ impl ConnectionHandler for ClientContext {
     async fn on_stop(&self) -> anyhow::Result<()> {
         info!("Stopping server");
         let server_manager = self.server_manager.lock().await;
+        server_manager.cancel_stop().await;
         server_manager.schedule_stop(Duration::ZERO).await;
         server_manager.stop_stdin_listener();
         Ok(())

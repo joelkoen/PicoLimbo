@@ -10,6 +10,9 @@
     "clientbound": {
       "minecraft:game_profile": {
         "protocol_id": 2
+      },
+      "minecraft:login_disconnect": {
+        "protocol_id": 0
       }
     },
     "serverbound": {

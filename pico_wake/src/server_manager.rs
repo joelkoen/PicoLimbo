@@ -169,10 +169,18 @@ impl ServerManager {
             return;
         }
 
+        let server = self.server.clone();
+        if delay.is_zero() {
+            info!("Stopping server now…");
+            if let Err(e) = Self::stop_now(server).await {
+                error!("Failed to stop server: {}", e);
+            }
+            return;
+        }
+
         let token = CancellationToken::new();
         *token_lock = Some(token.clone());
         info!("Server scheduled to stop in {} seconds", delay.as_secs());
-        let server = self.server.clone();
         tokio::spawn(async move {
             tokio::select! {
                 _ = tokio::time::sleep(delay) => {
