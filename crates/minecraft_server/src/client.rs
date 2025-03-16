@@ -20,6 +20,7 @@ pub struct Client {
     packet_map: PacketMap,
     game_profile: Option<GameProfile>,
     version: Option<ProtocolVersion>,
+    message_id: i32,
 }
 
 #[derive(Debug, Error)]
@@ -39,6 +40,7 @@ impl Client {
             state: State::default(),
             game_profile: None,
             version: None,
+            message_id: -1,
         }
     }
 
@@ -125,6 +127,14 @@ impl Client {
 
     pub fn protocol_version(&self) -> ProtocolVersion {
         self.version.clone().unwrap_or_default()
+    }
+
+    pub fn set_velocity_login_message_id(&mut self, message_id: i32) {
+        self.message_id = message_id;
+    }
+
+    pub fn get_velocity_login_message_id(&self) -> i32 {
+        self.message_id
     }
 
     fn get_packet_name_from_id(&self, packet_id: u8) -> Option<String> {

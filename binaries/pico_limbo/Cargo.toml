@@ -12,3 +12,7 @@ minecraft_packets = { path = "../../crates/minecraft_packets" }
 minecraft_server = { path = "../../crates/minecraft_server" }
 thiserror = "2.0"
 clap = { version = "4.5", features = ["derive"] }
+hmac = "0.12.1"
+sha2 = "0.10.8"
+subtle = "2.6.1"
+rand = "0.9.0"

@@ -7,8 +7,8 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 
 #[async_trait]
-pub trait Handler: Send + Sync {
-    async fn handle(&self, client: SharedClient, raw_packet: NamedPacket);
+pub trait Handler<S>: Send + Sync {
+    async fn handle(&self, state: S, client: SharedClient, raw_packet: NamedPacket);
 }
 
 pub struct ListenerHandler<T, F> {
@@ -26,18 +26,19 @@ impl<T, F> ListenerHandler<T, F> {
 }
 
 #[async_trait]
-impl<T, F, Fut> Handler for ListenerHandler<T, F>
+impl<T, F, Fut, S> Handler<S> for ListenerHandler<T, F>
 where
     T: DecodePacket + Send + Sync + 'static,
-    F: Fn(SharedClient, T) -> Fut + Send + Sync + 'static,
+    F: Fn(S, SharedClient, T) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = ()> + Send + 'static,
+    S: Sync + Send + 'static,
 {
-    async fn handle(&self, client: SharedClient, raw_packet: NamedPacket) {
+    async fn handle(&self, state: S, client: SharedClient, raw_packet: NamedPacket) {
         let packet = async {
             let client = client.lock().await;
             raw_packet.decode(client.protocol_version()).unwrap()
         }
         .await;
-        (self.listener_fn)(client, packet).await;
+        (self.listener_fn)(state, client, packet).await;
     }
 }

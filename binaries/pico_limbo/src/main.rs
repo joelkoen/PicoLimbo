@@ -1,10 +1,10 @@
 mod cli;
 mod handlers;
+mod velocity;
 
 use crate::cli::Cli;
-use crate::handlers::configuration::{on_acknowledge_configuration, on_plugin_message};
 use crate::handlers::handshake::on_handshake;
-use crate::handlers::login::{on_login_acknowledged, on_login_start};
+use crate::handlers::login::{on_custom_query_answer, on_login_acknowledged, on_login_start};
 use crate::handlers::status::{on_ping_request, on_status_request};
 use clap::Parser;
 use minecraft_server::server::Server;
@@ -18,14 +18,19 @@ async fn main() {
     let cli = Cli::parse();
     enable_logging(cli.debug);
 
-    Server::new(cli.address)
+    let state = if let Some(secret_key) = cli.secret_key {
+        ServerState::modern_forwarding(secret_key.as_bytes())
+    } else {
+        ServerState::no_forwarding()
+    };
+
+    Server::<ServerState>::new(cli.address, state)
         .on(on_handshake)
         .on(on_status_request)
         .on(on_ping_request)
         .on(on_login_start)
         .on(on_login_acknowledged)
-        .on(on_plugin_message)
-        .on(on_acknowledge_configuration)
+        .on(on_custom_query_answer)
         .run()
         .await;
 }
@@ -42,4 +47,34 @@ fn enable_logging(verbose: u8) {
         .with(EnvFilter::from_default_env().add_directive(log_level.into()))
         .with(tracing_subscriber::fmt::layer().with_target(false))
         .init();
+}
+
+#[derive(Clone)]
+struct ServerState {
+    secret_key: Vec<u8>,
+    modern_forwarding: bool,
+}
+
+impl ServerState {
+    fn modern_forwarding(secret_key: &[u8]) -> Self {
+        Self {
+            secret_key: secret_key.to_vec(),
+            modern_forwarding: true,
+        }
+    }
+
+    fn no_forwarding() -> Self {
+        Self {
+            secret_key: Vec::new(),
+            modern_forwarding: false,
+        }
+    }
+
+    fn is_modern_forwarding(&self) -> bool {
+        self.modern_forwarding
+    }
+
+    fn secret_key(&self) -> &[u8] {
+        &self.secret_key
+    }
 }

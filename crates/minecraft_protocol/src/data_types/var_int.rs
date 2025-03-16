@@ -110,11 +110,25 @@ mod tests {
         ]
     }
 
+    fn get_read_test_cases() -> Vec<(Vec<u8>, i32)> {
+        vec![
+            (vec![0x01, 0x09], 1),
+            (
+                vec![0x09, 0x31, 0x32, 0x37, 0x2e, 0x30, 0x2e, 0x30, 0x2e, 0x31],
+                9,
+            ),
+        ]
+    }
+
     #[test]
     fn test_read_var_int() {
-        let test_cases = get_test_cases();
+        for (bytes, expected) in get_test_cases() {
+            let mut index = 0;
+            let result = VarInt::decode(&bytes, &mut index);
+            assert_eq!(result.unwrap().value(), expected);
+        }
 
-        for (bytes, expected) in test_cases {
+        for (bytes, expected) in get_read_test_cases() {
             let mut index = 0;
             let result = VarInt::decode(&bytes, &mut index);
             assert_eq!(result.unwrap().value(), expected);

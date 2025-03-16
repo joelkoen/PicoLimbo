@@ -1,11 +1,9 @@
-use minecraft_packets::configuration::acknowledge_finish_configuration_packet::AcknowledgeConfigurationPacket;
 use minecraft_packets::configuration::client_bound_known_packs_packet::ClientBoundKnownPacksPacket;
 use minecraft_packets::configuration::client_bound_plugin_message_packet::ClientBoundPluginMessagePacket;
 use minecraft_packets::configuration::finish_configuration_packet::FinishConfigurationPacket;
 use minecraft_packets::configuration::registry_data_packet::{
     RegistryDataCodecPacket, RegistryDataPacket,
 };
-use minecraft_packets::configuration::server_bound_plugin_message_packet::ServerBoundPluginMessagePacket;
 use minecraft_packets::play::chunk_data_and_update_light_packet::ChunkDataAndUpdateLightPacket;
 use minecraft_packets::play::game_event_packet::GameEventPacket;
 use minecraft_packets::play::login_packet::LoginPacket;
@@ -16,12 +14,10 @@ use minecraft_protocol::data::registry::get_all_registries::{
 };
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
-use minecraft_server::client::{Client, SharedClient};
+use minecraft_server::client::Client;
 use tokio::sync::MutexGuard;
 
-pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginMessagePacket) {
-    let mut client = client.lock().await;
-
+pub async fn send_configuration_packets(mut client: MutexGuard<'_, Client>) {
     // Send Server Brand
     let packet = ClientBoundPluginMessagePacket::brand("PicoLimbo");
     client.send_packet(packet).await;
@@ -51,13 +47,8 @@ pub async fn on_plugin_message(client: SharedClient, _packet: ServerBoundPluginM
     // Send Finished Configuration
     let packet = FinishConfigurationPacket {};
     client.send_packet(packet).await;
-}
 
-pub async fn on_acknowledge_configuration(
-    client: SharedClient,
-    _packet: AcknowledgeConfigurationPacket,
-) {
-    send_play_packets(client.lock().await).await;
+    send_play_packets(client).await;
 }
 
 /// Switch to the Play state and send required packets to spawn the player in the world

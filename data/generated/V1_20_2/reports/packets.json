@@ -32,6 +32,9 @@
   },
   "login": {
     "clientbound": {
+      "minecraft:custom_query": {
+        "protocol_id": 4
+      },
       "minecraft:game_profile": {
         "protocol_id": 2
       },
@@ -40,6 +43,9 @@
       }
     },
     "serverbound": {
+      "minecraft:custom_query_answer": {
+        "protocol_id": 2
+      },
       "minecraft:hello": {
         "protocol_id": 0
       },

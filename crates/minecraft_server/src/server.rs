@@ -14,16 +14,21 @@ use tokio::sync::Mutex;
 use tokio::time::interval;
 use tracing::{debug, error, info};
 
-pub struct Server {
-    handlers: HashMap<String, Box<dyn Handler>>,
+pub struct Server<S>
+where
+    S: Clone + Sync + Send + 'static,
+{
+    state: S,
+    handlers: HashMap<String, Box<dyn Handler<S>>>,
     listen_address: String,
     packet_map: PacketMap,
 }
 
-impl Server {
-    pub fn new(listen_address: impl ToString) -> Self {
+impl<S: Clone + Sync + Send + 'static> Server<S> {
+    pub fn new(listen_address: impl ToString, state: S) -> Self {
         let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
         Self {
+            state,
             handlers: HashMap::new(),
             packet_map: PacketMap::new(PathBuf::from(data_dir)),
             listen_address: listen_address.to_string(),
@@ -33,7 +38,7 @@ impl Server {
     pub fn on<T, F, Fut>(mut self, listener_fn: F) -> Self
     where
         T: PacketId + DecodePacket + Send + Sync + 'static,
-        F: Fn(SharedClient, T) -> Fut + Send + Sync + 'static,
+        F: Fn(S, SharedClient, T) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ()> + Send + 'static,
     {
         let packet_name = T::PACKET_NAME.to_string();
@@ -62,8 +67,9 @@ impl Server {
                             debug!("Accepted connection from {}", addr);
                             let handlers = handlers.clone();
                             let packet_map = packet_map.clone();
+                            let state = self.state.clone();
                             tokio::spawn(async move {
-                                if let Err(e) = handle_client(socket, handlers, packet_map).await {
+                                if let Err(e) = handle_client(socket, handlers, packet_map, state).await {
                                     error!("Error handling client {}: {:?}", addr, e);
                                 }
                             });
@@ -88,10 +94,11 @@ impl Server {
     }
 }
 
-async fn handle_client(
+async fn handle_client<S: Clone>(
     socket: TcpStream,
-    handlers: Arc<HashMap<String, Box<dyn Handler>>>,
+    handlers: Arc<HashMap<String, Box<dyn Handler<S>>>>,
     packet_map: PacketMap,
+    state: S,
 ) -> tokio::io::Result<()> {
     let client = Arc::new(Mutex::new(Client::new(socket, packet_map)));
     let mut keep_alive_interval = interval(Duration::from_secs(20));
@@ -104,7 +111,7 @@ async fn handle_client(
                 match packet_result {
                     Ok(named_packet) => {
                         if let Some(handler) = handlers.get(&named_packet.name) {
-                            handler.handle(client.clone(), named_packet).await;
+                            handler.handle(state.clone(), client.clone(), named_packet).await;
                         }
                         // Silently ignore no handler
                     }

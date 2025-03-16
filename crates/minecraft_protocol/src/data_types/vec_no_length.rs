@@ -1,4 +1,5 @@
-use crate::prelude::EncodePacketField;
+use crate::prelude::{DecodePacketField, EncodePacketField};
+use std::fmt::Debug;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -17,6 +18,27 @@ impl<T: EncodePacketField> EncodePacketField for Vec<T> {
                 .map_err(|_| VecEncodeError::EncodeError)?;
         }
         Ok(())
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum VecDecodeError<T: DecodePacketField> {
+    #[error("vec length is invalid")]
+    InvalidVecLength,
+    #[error("error while decoding a value from the vec; error={0}")]
+    DecodeError(T::Error),
+}
+
+impl DecodePacketField for Vec<u8> {
+    type Error = VecDecodeError<u8>;
+
+    fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
+        let vec = bytes.get(*index..).unwrap_or_default();
+        let length = vec.len();
+
+        *index += length;
+
+        Ok(vec.to_vec())
     }
 }
 

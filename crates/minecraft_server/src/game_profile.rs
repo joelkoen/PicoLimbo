@@ -8,6 +8,15 @@ pub struct GameProfile {
 }
 
 impl GameProfile {
+    pub fn new(username: String, uuid: Uuid) -> Self {
+        let username = if let Some(first_32) = username.get(..16) {
+            first_32.to_string()
+        } else {
+            username
+        };
+        Self { username, uuid }
+    }
+
     pub fn username(&self) -> &str {
         &self.username
     }
