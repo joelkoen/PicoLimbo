@@ -30,6 +30,17 @@ docker run --rm -p "25565:25565" ghcr.io/quozul/picolimbo:master
 
 A sample [docker-compose.yml file](./docker-compose.yml) is available in the repository.
 
+## Features
+
+### Velocity Modern Forwarding
+
+PicoLimbo supports Velocity Modern Forwarding, to enable it, pass the secret key as a command line argument ot the
+pico_limbo binary.
+
+```shell
+pico_limbo --address 127.0.0.1:25565 --secret-key MyForwardingSecret
+```
+
 ## Similar Projects
 
 - [Limbo](https://github.com/LOOHP/Limbo) - Supports only one version of the game at a time
