@@ -1,3 +1,13 @@
 [workspace]
 resolver = "2"
-members = ["macros", "libraries/nbt", "libraries/minecraft_protocol", "pico_limbo", "libraries/packet_serializer", "libraries/minecraft_packets", "libraries/net", "libraries/minecraft_server", "pico_wake"]
+members = [
+    "crates/macros",
+    "crates/nbt",
+    "crates/minecraft_protocol",
+    "crates/packet_serializer",
+    "crates/minecraft_packets",
+    "crates/net",
+    "crates/minecraft_server",
+    "binaries/pico_limbo",
+    "binaries/pico_wake"
+]
