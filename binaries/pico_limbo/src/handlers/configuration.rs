@@ -55,8 +55,25 @@ pub async fn send_configuration_packets(mut client: MutexGuard<'_, Client>) {
 pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     client.update_state(State::Play);
 
+    let registry_codec = get_registry_codec(client.protocol_version());
+    let dimension = registry_codec
+        .find_tag("minecraft:dimension_type")
+        .unwrap()
+        .find_tag("value")
+        .unwrap()
+        .get_vec()
+        .unwrap();
+
+    let dimension = dimension
+        .first()
+        .unwrap()
+        .find_tag("element")
+        .unwrap()
+        .clone();
+
     let packet = LoginPacket {
-        registry_codec: get_registry_codec(client.protocol_version()),
+        registry_codec,
+        dimension,
         ..Default::default()
     };
     client.send_packet(packet).await;

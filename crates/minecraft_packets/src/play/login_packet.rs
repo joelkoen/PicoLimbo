@@ -15,7 +15,9 @@ pub struct LoginPacket {
     pub dimension_names: LengthPaddedVec<Identifier>,
     #[pvn(..764)]
     pub registry_codec: Nbt,
-    #[pvn(..764)]
+    #[pvn(..759)]
+    pub dimension: Nbt,
+    #[pvn(759..764)]
     pub dimension_type: Identifier,
     /// Name of the dimension being spawned into.
     #[pvn(..764)]
@@ -59,10 +61,13 @@ pub struct LoginPacket {
     /// True if the world is a superflat world; flat worlds have different void fog and a horizon at y=0 instead of y=63.
     pub is_flat: bool,
     /// If true, then the next two fields are present.
+    #[pvn(759..)]
     pub has_death_location: bool,
     /// Name of the dimension the player died in.
+    #[pvn(759..)]
     pub death_dimension_name: Option<Identifier>,
     /// The location that the player died at.
+    #[pvn(759..)]
     pub death_location: Option<Position>,
     /// The number of ticks until the player can use the portal again.
     #[pvn(763..)]
@@ -91,6 +96,7 @@ impl Default for LoginPacket {
             v_1_20_2_do_limited_crafting: false,
             v_1_20_5_dimension_type: VarInt::new(0),
             dimension_type: overworld.clone(),
+            dimension: Nbt::End,
             dimension_name: overworld.clone(),
             hashed_seed: 0,
             v_1_20_2_game_mode: 3,

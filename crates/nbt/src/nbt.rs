@@ -100,6 +100,7 @@ impl Nbt {
         match self {
             Self::Compound { value, .. } => Some(value.clone()),
             Self::NamelessCompound { value, .. } => Some(value.clone()),
+            Self::List { value, .. } => Some(value.clone()),
             _ => None,
         }
     }
