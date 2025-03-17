@@ -26,8 +26,14 @@ pub enum ProtocolVersion {
     V1_19_1,
     #[pvn(759)]
     V1_19,
+    /// [Minecraft 1.18.2](https://minecraft.wiki/w/Java_Edition_1.18.2) released on February 28, 2022.
+    /// See the [protocol documentation version 758](https://minecraft.wiki/w/Java_Edition_protocol?oldid=2772783)
     #[pvn(758)]
     V1_18_2,
+    /// [Minecraft 1.18](https://minecraft.wiki/w/Java_Edition_1.18) released on November 30, 2021.
+    /// See the [protocol documentation version 757](https://minecraft.wiki/w/Java_Edition_protocol?oldid=2772738)
+    #[pvn(757)]
+    V1_18,
 }
 
 impl PartialEq for ProtocolVersion {
