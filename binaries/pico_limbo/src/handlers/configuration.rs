@@ -12,6 +12,7 @@ use minecraft_packets::play::synchronize_player_position_packet::SynchronizePlay
 use minecraft_protocol::data::registry::get_all_registries::{
     get_grouped_registries, get_registry_codec,
 };
+use minecraft_protocol::prelude::Nbt;
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
 use minecraft_server::client::Client;
@@ -55,21 +56,30 @@ pub async fn send_configuration_packets(mut client: MutexGuard<'_, Client>) {
 pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     client.update_state(State::Play);
 
-    let registry_codec = get_registry_codec(client.protocol_version());
-    let dimension = registry_codec
-        .find_tag("minecraft:dimension_type")
-        .unwrap()
-        .find_tag("value")
-        .unwrap()
-        .get_vec()
-        .unwrap();
+    let (registry_codec, dimension) = if client.protocol_version() <= ProtocolVersion::V1_20_2 {
+        let registry_codec = get_registry_codec(client.protocol_version());
+        let dimension = if client.protocol_version() <= ProtocolVersion::V1_18_2 {
+            let dimension = registry_codec
+                .find_tag("minecraft:dimension_type")
+                .unwrap()
+                .find_tag("value")
+                .unwrap()
+                .get_vec()
+                .unwrap();
 
-    let dimension = dimension
-        .first()
-        .unwrap()
-        .find_tag("element")
-        .unwrap()
-        .clone();
+            dimension
+                .first()
+                .unwrap()
+                .find_tag("element")
+                .unwrap()
+                .clone()
+        } else {
+            Nbt::End
+        };
+        (registry_codec, dimension)
+    } else {
+        (Nbt::End, Nbt::End)
+    };
 
     let packet = LoginPacket {
         registry_codec,
