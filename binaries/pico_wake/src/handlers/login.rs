@@ -1,5 +1,5 @@
 use crate::client::Client;
-use minecraft_packets::login::login_disconnect::LoginDisconnectPacket;
+use minecraft_packets::login::login_disconnect_packet::LoginDisconnectPacket;
 use minecraft_packets::login::login_state_packet::LoginStartPacket;
 
 pub async fn on_login_start(client: &mut Client, packet: &LoginStartPacket) {

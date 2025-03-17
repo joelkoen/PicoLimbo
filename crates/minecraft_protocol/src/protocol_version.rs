@@ -34,6 +34,10 @@ pub enum ProtocolVersion {
     /// See the [protocol documentation version 757](https://minecraft.wiki/w/Java_Edition_protocol?oldid=2772738)
     #[pvn(757)]
     V1_18,
+    #[pvn(756)]
+    V1_17_1,
+    #[pvn(755)]
+    V1_17,
 }
 
 impl PartialEq for ProtocolVersion {

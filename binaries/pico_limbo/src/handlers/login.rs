@@ -5,7 +5,7 @@ use minecraft_packets::login::custom_query_answer_packet::CustomQueryAnswerPacke
 use minecraft_packets::login::custom_query_packet::CustomQueryPacket;
 use minecraft_packets::login::game_profile_packet::GameProfilePacket;
 use minecraft_packets::login::login_acknowledged_packet::LoginAcknowledgedPacket;
-use minecraft_packets::login::login_disconnect::LoginDisconnectPacket;
+use minecraft_packets::login::login_disconnect_packet::LoginDisconnectPacket;
 use minecraft_packets::login::login_state_packet::LoginStartPacket;
 use minecraft_packets::login::login_success_packet::LoginSuccessPacket;
 use minecraft_protocol::prelude::{DecodePacketField, Uuid};

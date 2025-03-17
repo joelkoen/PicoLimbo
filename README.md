@@ -3,7 +3,7 @@
 > [!WARNING]
 > This software is highly experimental. Use at your own risks and report any bugs by submitting an issue on GitHub.
 
-An attempt at writing a lightweight Minecraft server from scratch in Rust. Currently, supports 1.18 up to 1.21.4.
+An attempt at writing a lightweight Minecraft server from scratch in Rust. Currently, supports 1.17 up to 1.21.4.
 
 ## Introduction
 
@@ -13,6 +13,8 @@ connection (keep alive) without unnecessary overhead.
 
 The server does not aim to replicate every feature or packet supported by Minecraft servers. However, it aims to support
 all Minecraft versions from 1.7.2 up to the most recent ones.
+
+This project only implements 23 different packets and aims to support more than 44 different Minecraft versions.
 
 ## Getting Started
 

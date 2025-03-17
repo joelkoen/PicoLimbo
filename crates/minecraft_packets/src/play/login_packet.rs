@@ -30,6 +30,7 @@ pub struct LoginPacket {
     /// Render distance (2-32).
     pub view_distance: VarInt,
     /// The distance that the client will process specific things, such as entities.
+    #[pvn(757..)]
     pub simulation_distance: VarInt,
     /// If true, a Notchian client shows reduced information on the debug screen. For servers in development, this should almost always be false.
     pub reduced_debug_info: bool,
