@@ -28,7 +28,7 @@ pub struct SynchronizePlayerPositionPacket {
     #[pvn(..768)]
     pub teleport_id: VarInt,
     /// True if the player should dismount their vehicle.
-    #[pvn(..762)]
+    #[pvn(755..762)]
     pub dismount_vehicle: bool,
 }
 

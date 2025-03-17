@@ -4,6 +4,7 @@ use minecraft_protocol::prelude::*;
 #[packet_id("play/clientbound/minecraft:set_default_spawn_position")]
 pub struct SetDefaultSpawnPosition {
     location: Position,
+    #[pvn(755..)]
     angle: f32,
 }
 
