@@ -235,7 +235,7 @@ mod tests {
         let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
-            .join("../../../../../data/generated");
+            .join("../data/generated");
         PacketMap::new(data_dir)
     }
 }
