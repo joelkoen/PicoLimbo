@@ -11,7 +11,7 @@ pub struct ChunkDataAndUpdateLightPacket {
     /// Size of Data in bytes!
     /// LengthPaddedVec prefixes with the number of elements!
     size: VarInt,
-    data: Vec<ChunkSection>,
+    data: Vec<u8>,
     block_entities: LengthPaddedVec<BlockEntity>,
     // Light Data
     sky_light_mask: BitSet,
@@ -40,7 +40,7 @@ impl Default for ChunkDataAndUpdateLightPacket {
             chunk_z: 0,
             height_maps: root_tag,
             size,
-            data,
+            data: encoded_data,
             block_entities: Vec::new().into(),
             sky_light_mask: BitSet::default(),
             block_light_mask: BitSet::default(),
