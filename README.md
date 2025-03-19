@@ -20,7 +20,7 @@ This project only implements 23 different packets and aims to support more than 
 
 ### Pterodactyl
 
-To use in the Pterodactyl panel, you can import the [egg file](./pterodactyl/egg-pico-limbo.json) into your panel.
+To use in the Pterodactyl panel, you can import the [egg file](./pterodactyl/eggs) into your panel.
 
 ### Using Docker
 

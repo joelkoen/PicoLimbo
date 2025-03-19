@@ -10,7 +10,7 @@
   "description": "A lightweight Minecraft server written from scratch in Rust.",
   "features": null,
   "docker_images": {
-    "ghcr.io\/quozul\/picolimbo:pterodactyl": "ghcr.io\/quozul\/picolimbo:pterodactyl"
+    "ghcr.io\/quozul\/picolimbo:pterodactyl-pico-limbo": "ghcr.io\/quozul\/picolimbo:pterodactyl-pico-limbo"
   },
   "file_denylist": [],
   "startup": "pico_limbo -a {{SERVER_IP}}:{{SERVER_PORT}}",

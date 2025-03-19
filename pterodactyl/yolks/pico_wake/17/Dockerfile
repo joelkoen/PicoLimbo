@@ -1,8 +1,7 @@
 FROM ghcr.io/quozul/picolimbo:master
 
-RUN adduser -h /home/container -D container
-
-RUN chown -R container: /usr/src/app/data
+RUN apk add --no-cache openjdk17-jre lsof curl ca-certificates openssl git tar sqlite fontconfig freetype tzdata iproute2 libstdc++ && \
+    adduser -h /home/container -D container
 
 USER container
 ENV USER=container HOME=/home/container
