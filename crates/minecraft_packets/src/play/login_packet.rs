@@ -5,6 +5,7 @@ use minecraft_protocol::prelude::*;
 pub struct LoginPacket {
     /// The player's Entity ID (EID).
     pub entity_id: i32,
+    #[pvn(751..)]
     pub is_hardcore: bool,
     #[pvn(..764)]
     pub game_mode: u8,
@@ -15,11 +16,13 @@ pub struct LoginPacket {
     pub dimension_names: LengthPaddedVec<Identifier>,
     #[pvn(..764)]
     pub registry_codec: Nbt,
-    #[pvn(..759)]
+    #[pvn(751..759)]
     pub dimension: Nbt,
     #[pvn(759..764)]
     pub dimension_type: Identifier,
     /// Name of the dimension being spawned into.
+    #[pvn(735..751)]
+    pub v1_16_dimension_name: Identifier,
     #[pvn(..764)]
     pub dimension_name: Identifier,
     /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
@@ -94,6 +97,7 @@ impl Default for LoginPacket {
             simulation_distance: VarInt::new(10),
             reduced_debug_info: false,
             enable_respawn_screen: true,
+            v1_16_dimension_name: overworld.clone(),
             v_1_20_2_do_limited_crafting: false,
             v_1_20_5_dimension_type: VarInt::new(0),
             dimension_type: overworld.clone(),
@@ -286,6 +290,26 @@ mod tests {
                     108, 100, 8, 0, 5, 72, 101, 108, 108, 111, 0, 5, 87, 111, 114, 108, 100, 19,
                     109, 105, 110, 101, 99, 114, 97, 102, 116, 58, 111, 118, 101, 114, 119, 111,
                     114, 108, 100, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10, 0, 1, 0, 0,
+                ],
+            ),
+            (
+                736,
+                vec![
+                    0, 0, 0, 0, 3, 255, 0, 8, 0, 5, 72, 101, 108, 108, 111, 0, 5, 87, 111, 114,
+                    108, 100, 19, 109, 105, 110, 101, 99, 114, 97, 102, 116, 58, 111, 118, 101,
+                    114, 119, 111, 114, 108, 100, 19, 109, 105, 110, 101, 99, 114, 97, 102, 116,
+                    58, 111, 118, 101, 114, 119, 111, 114, 108, 100, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10,
+                    0, 1, 0, 0,
+                ],
+            ),
+            (
+                735,
+                vec![
+                    0, 0, 0, 0, 3, 255, 0, 8, 0, 5, 72, 101, 108, 108, 111, 0, 5, 87, 111, 114,
+                    108, 100, 19, 109, 105, 110, 101, 99, 114, 97, 102, 116, 58, 111, 118, 101,
+                    114, 119, 111, 114, 108, 100, 19, 109, 105, 110, 101, 99, 114, 97, 102, 116,
+                    58, 111, 118, 101, 114, 119, 111, 114, 108, 100, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10,
+                    0, 1, 0, 0,
                 ],
             ),
         ]);

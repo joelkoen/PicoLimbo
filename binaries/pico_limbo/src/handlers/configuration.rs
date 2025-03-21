@@ -10,13 +10,14 @@ use minecraft_packets::play::login_packet::LoginPacket;
 use minecraft_packets::play::set_default_spawn_position::SetDefaultSpawnPosition;
 use minecraft_packets::play::synchronize_player_position_packet::SynchronizePlayerPositionPacket;
 use minecraft_protocol::data::registry::get_all_registries::{
-    get_grouped_registries, get_registry_codec,
+    get_1_16_registry_codec, get_grouped_registries, get_registry_codec,
 };
 use minecraft_protocol::prelude::Nbt;
 use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
 use minecraft_server::client::Client;
 use tokio::sync::MutexGuard;
+use tracing::trace;
 
 pub async fn send_configuration_packets(mut client: MutexGuard<'_, Client>) {
     // Send Server Brand
@@ -57,8 +58,18 @@ pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     client.update_state(State::Play);
 
     let (registry_codec, dimension) = if client.protocol_version() <= ProtocolVersion::V1_20_2 {
-        let registry_codec = get_registry_codec(client.protocol_version());
-        let dimension = if client.protocol_version() <= ProtocolVersion::V1_18_2 {
+        let registry_codec = if client.protocol_version() == ProtocolVersion::V1_16
+            || client.protocol_version() == ProtocolVersion::V1_16_1
+        {
+            get_1_16_registry_codec().unwrap()
+        } else {
+            get_registry_codec(client.protocol_version())
+        };
+        trace!("{:?}", registry_codec);
+
+        let dimension = if (ProtocolVersion::V1_16_2..=ProtocolVersion::V1_18_2)
+            .contains(&client.protocol_version())
+        {
             let dimension = registry_codec
                 .find_tag("minecraft:dimension_type")
                 .unwrap()
@@ -92,9 +103,11 @@ pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
     let packet = SynchronizePlayerPositionPacket::default();
     client.send_packet(packet).await;
 
-    // Send Set Default Spawn Position
-    let packet = SetDefaultSpawnPosition::default();
-    client.send_packet(packet).await;
+    if client.protocol_version() >= ProtocolVersion::V1_19 {
+        // Send Set Default Spawn Position
+        let packet = SetDefaultSpawnPosition::default();
+        client.send_packet(packet).await;
+    }
 
     if client.protocol_version() >= ProtocolVersion::V1_20_3 {
         // Send Game Event

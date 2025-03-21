@@ -33,13 +33,17 @@ const REGISTRIES_TO_SEND: [&str; 9] = [
     "worldgen/biome",
 ];
 
+fn get_version_directory(protocol_version: ProtocolVersion) -> PathBuf {
+    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
+    PathBuf::from(data_dir)
+        .join(protocol_version.to_string())
+        .join("data/minecraft")
+}
+
 pub fn get_grouped_registries(
     protocol_version: ProtocolVersion,
 ) -> HashMap<Identifier, Vec<RegistryEntry>> {
-    let data_dir = std::env::var("DATA_DIR").unwrap_or_else(|_| "./data/generated".to_string());
-    let version_directory = PathBuf::from(data_dir)
-        .join(protocol_version.to_string())
-        .join("data/minecraft");
+    let version_directory = get_version_directory(protocol_version);
     let registries = get_all_registries(&version_directory);
 
     let mut grouped: HashMap<Identifier, Vec<RegistryEntry>> = HashMap::new();
@@ -111,6 +115,14 @@ pub fn get_registry_codec(protocol_version: ProtocolVersion) -> Nbt {
             })
             .collect::<Vec<_>>(),
     }
+}
+
+pub fn get_1_16_registry_codec() -> anyhow::Result<Nbt> {
+    let path = get_version_directory(ProtocolVersion::V1_16).join("dimension.json");
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let json: Value = serde_json::from_reader(reader)?;
+    Ok(Nbt::from_json(&json, None))
 }
 
 fn get_all_registries(root_directory: &Path) -> Vec<DataRegistryEntry> {
