@@ -10,6 +10,7 @@ pub enum ProtocolVersion {
     V1_21_2,
     #[pvn(767)]
     V1_21,
+
     #[pvn(766)]
     V1_20_5,
     #[pvn(765)]
@@ -18,6 +19,7 @@ pub enum ProtocolVersion {
     V1_20_2,
     #[pvn(763)]
     V1_20,
+
     #[pvn(762)]
     V1_19_4,
     #[pvn(761)]
@@ -26,6 +28,7 @@ pub enum ProtocolVersion {
     V1_19_1,
     #[pvn(759)]
     V1_19,
+
     /// [Minecraft 1.18.2](https://minecraft.wiki/w/Java_Edition_1.18.2) released on February 28, 2022.
     /// See the [protocol documentation version 758](https://minecraft.wiki/w/Java_Edition_protocol?oldid=2772783)
     #[pvn(758)]
@@ -38,22 +41,47 @@ pub enum ProtocolVersion {
     V1_17_1,
     #[pvn(755)]
     V1_17,
+
     #[pvn(754)]
     V1_16_4,
     #[pvn(753)]
     V1_16_3,
+    /// Minecraft version 1.16.2 changes the format of the registries.
     #[pvn(751)]
     V1_16_2,
+    /// Minecraft version 1.16.1 is basically the same as 1.16.
     #[pvn(736)]
     V1_16_1,
+
+    /// Minecraft version 1.16 introduced the first registries to be sent in the Join Game packet.
+    /// Also, string-encoded UUID are now sent as a UUID in the Game Profile Packet.
     #[pvn(735)]
     V1_16,
+
     #[pvn(578)]
     V1_15_2,
     #[pvn(575)]
     V1_15_1,
     #[pvn(573)]
     V1_15,
+
+    #[pvn(498)]
+    V1_14_4,
+    #[pvn(490)]
+    V1_14_3,
+    #[pvn(485)]
+    V1_14_2,
+    #[pvn(480)]
+    V1_14_1,
+    #[pvn(477)]
+    V1_14,
+
+    #[pvn(404)]
+    V1_13_2,
+    #[pvn(401)]
+    V1_13_1,
+    #[pvn(393)]
+    V1_13,
 }
 
 impl PartialEq for ProtocolVersion {

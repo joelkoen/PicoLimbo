@@ -1,5 +1,5 @@
 use crate::nbt::Nbt;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 impl Nbt {
     pub fn to_json(&self) -> Value {

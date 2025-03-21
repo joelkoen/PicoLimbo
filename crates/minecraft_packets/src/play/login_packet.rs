@@ -30,17 +30,21 @@ pub struct LoginPacket {
     #[pvn(..735)]
     pub dimension: i32,
     /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
-    #[pvn(..764)]
+    #[pvn(573..764)]
     pub hashed_seed: i64,
     /// Was once used by the client to draw the player list, but now is ignored.
     #[pvn(735..)]
     pub v1_16_max_players: VarInt,
+    /// 0: peaceful, 1: easy, 2: normal, 3: hard
+    #[pvn(..477)]
+    pub difficulty: u8,
     #[pvn(..735)]
     pub max_players: u8,
     /// default, flat, largeBiomes, amplified, customized, buffet, default_1_1
     #[pvn(..735)]
     pub level_type: String,
     /// Render distance (2-32).
+    #[pvn(477..)]
     pub view_distance: VarInt,
     /// The distance that the client will process specific things, such as entities.
     #[pvn(757..)]
@@ -48,6 +52,7 @@ pub struct LoginPacket {
     /// If true, a Notchian client shows reduced information on the debug screen. For servers in development, this should almost always be false.
     pub reduced_debug_info: bool,
     /// Set to false when the doImmediateRespawn gamerule is true.
+    #[pvn(573..)]
     pub enable_respawn_screen: bool,
     /// Whether players can only craft recipes they have already unlocked. Currently unused by the client.
     #[pvn(764..)]
@@ -132,6 +137,7 @@ impl Default for LoginPacket {
             v_1_20_2_dimension_name: overworld.clone(),
             v_1_20_2_dimension_type: overworld,
             v_1_20_2_hashed_seed: 0,
+            difficulty: 0,
         }
     }
 }
@@ -325,6 +331,63 @@ mod tests {
                     114, 119, 111, 114, 108, 100, 19, 109, 105, 110, 101, 99, 114, 97, 102, 116,
                     58, 111, 118, 101, 114, 119, 111, 114, 108, 100, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10,
                     0, 1, 0, 0,
+                ],
+            ),
+            (
+                578,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97,
+                    117, 108, 116, 10, 0, 1,
+                ],
+            ),
+            (
+                575,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97,
+                    117, 108, 116, 10, 0, 1,
+                ],
+            ),
+            (
+                573,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97,
+                    117, 108, 116, 10, 0, 1,
+                ],
+            ),
+            (
+                498,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 10, 0,
+                ],
+            ),
+            (
+                490,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 10, 0,
+                ],
+            ),
+            (
+                485,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 10, 0,
+                ],
+            ),
+            (
+                480,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 10, 0,
+                ],
+            ),
+            (
+                477,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 10, 0,
+                ],
+            ),
+            (
+                404,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
                 ],
             ),
         ]);
