@@ -4,10 +4,25 @@ use minecraft_protocol::prelude::*;
 #[derive(Debug, PacketOut)]
 #[packet_id("login/clientbound/minecraft:game_profile")]
 pub struct GameProfilePacket {
-    pub uuid: Uuid,
-    pub username: String,
+    #[pvn(735..)]
+    v1_16_uuid: Uuid,
+    #[pvn(..735)]
+    uuid: String,
+    username: String,
     #[pvn(759..)]
-    pub properties: LengthPaddedVec<Property>,
+    properties: LengthPaddedVec<Property>,
     #[pvn(766..)]
-    pub strict_error_handling: bool,
+    strict_error_handling: bool,
+}
+
+impl GameProfilePacket {
+    pub fn new(uuid: Uuid, username: impl ToString) -> Self {
+        Self {
+            v1_16_uuid: uuid,
+            uuid: uuid.to_string(),
+            username: username.to_string(),
+            properties: Vec::new().into(),
+            strict_error_handling: false,
+        }
+    }
 }

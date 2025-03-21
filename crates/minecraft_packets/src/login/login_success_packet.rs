@@ -3,9 +3,20 @@ use minecraft_protocol::prelude::*;
 #[derive(Debug, PacketOut)]
 #[packet_id("login/clientbound/minecraft:login_finished")]
 pub struct LoginSuccessPacket {
-    pub uuid: Uuid,
-    pub username: String,
-    pub properties: LengthPaddedVec<Property>,
+    uuid: Uuid,
+    username: String,
+    #[pvn(735..)]
+    properties: LengthPaddedVec<Property>,
+}
+
+impl LoginSuccessPacket {
+    pub fn new(uuid: Uuid, username: impl ToString) -> Self {
+        Self {
+            uuid,
+            username: username.to_string(),
+            properties: Vec::new().into(),
+        }
+    }
 }
 
 #[derive(Debug)]

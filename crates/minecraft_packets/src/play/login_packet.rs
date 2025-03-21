@@ -9,27 +9,37 @@ pub struct LoginPacket {
     pub is_hardcore: bool,
     #[pvn(..764)]
     pub game_mode: u8,
-    #[pvn(..764)]
+    #[pvn(735..764)]
     pub previous_game_mode: i8,
     /// Size of the following array.
     /// Identifiers for all dimensions on the server.
-    pub dimension_names: LengthPaddedVec<Identifier>,
-    #[pvn(..764)]
+    #[pvn(735..)]
+    pub v1_16_dimension_names: LengthPaddedVec<Identifier>,
+    #[pvn(735..764)]
     pub registry_codec: Nbt,
     #[pvn(751..759)]
-    pub dimension: Nbt,
+    pub v1_16_dimension_codec: Nbt,
     #[pvn(759..764)]
-    pub dimension_type: Identifier,
+    pub v1_19_dimension_type: Identifier,
     /// Name of the dimension being spawned into.
     #[pvn(735..751)]
     pub v1_16_dimension_name: Identifier,
-    #[pvn(..764)]
-    pub dimension_name: Identifier,
+    #[pvn(735..764)]
+    pub v1_16_world_name: Identifier,
+    /// -1: Nether, 0: Overworld, 1: End; also, note that this is not a VarInt but instead a regular int.
+    #[pvn(..735)]
+    pub dimension: i32,
     /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
     #[pvn(..764)]
     pub hashed_seed: i64,
     /// Was once used by the client to draw the player list, but now is ignored.
-    pub max_players: VarInt,
+    #[pvn(735..)]
+    pub v1_16_max_players: VarInt,
+    #[pvn(..735)]
+    pub max_players: u8,
+    /// default, flat, largeBiomes, amplified, customized, buffet, default_1_1
+    #[pvn(..735)]
+    pub level_type: String,
     /// Render distance (2-32).
     pub view_distance: VarInt,
     /// The distance that the client will process specific things, such as entities.
@@ -61,8 +71,10 @@ pub struct LoginPacket {
     #[pvn(764..)]
     pub v_1_20_2_previous_game_mode: i8,
     /// True if the world is a debug mode world; debug mode worlds cannot be modified and have predefined blocks.
+    #[pvn(735..)]
     pub is_debug: bool,
     /// True if the world is a superflat world; flat worlds have different void fog and a horizon at y=0 instead of y=63.
+    #[pvn(735..)]
     pub is_flat: bool,
     /// If true, then the next two fields are present.
     #[pvn(759..)]
@@ -90,9 +102,11 @@ impl Default for LoginPacket {
             is_hardcore: false,
             game_mode: 3,
             previous_game_mode: -1,
-            dimension_names: Vec::new().into(),
+            v1_16_dimension_names: Vec::new().into(),
             registry_codec: Nbt::End,
-            max_players: VarInt::new(1),
+            v1_16_max_players: VarInt::new(1),
+            max_players: 1,
+            level_type: "default".to_string(),
             view_distance: VarInt::new(10),
             simulation_distance: VarInt::new(10),
             reduced_debug_info: false,
@@ -100,9 +114,10 @@ impl Default for LoginPacket {
             v1_16_dimension_name: overworld.clone(),
             v_1_20_2_do_limited_crafting: false,
             v_1_20_5_dimension_type: VarInt::new(0),
-            dimension_type: overworld.clone(),
-            dimension: Nbt::End,
-            dimension_name: overworld.clone(),
+            v1_19_dimension_type: overworld.clone(),
+            v1_16_dimension_codec: Nbt::End,
+            v1_16_world_name: overworld.clone(),
+            dimension: 0,
             hashed_seed: 0,
             v_1_20_2_game_mode: 3,
             v_1_20_2_previous_game_mode: -1,
@@ -319,7 +334,7 @@ mod tests {
                 name: Some("Hello".to_string()),
                 value: "World".to_string(),
             },
-            dimension: Nbt::String {
+            v1_16_dimension_codec: Nbt::String {
                 name: Some("Hello".to_string()),
                 value: "World".to_string(),
             },

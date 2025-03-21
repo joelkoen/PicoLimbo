@@ -85,20 +85,11 @@ async fn fire_login_success(client: SharedClient, game_profile: GameProfile) {
     let mut client = client.lock().await;
 
     if client.protocol_version() >= ProtocolVersion::V1_21_2 {
-        let packet = LoginSuccessPacket {
-            uuid: game_profile.uuid(),
-            username: game_profile.username().to_string(),
-            properties: Vec::new().into(),
-        };
+        let packet = LoginSuccessPacket::new(game_profile.uuid(), game_profile.username());
         trace!("sending login success: {:?}", packet);
         client.send_packet(packet).await;
     } else {
-        let packet = GameProfilePacket {
-            uuid: game_profile.uuid(),
-            username: game_profile.username().to_string(),
-            properties: Vec::new().into(),
-            strict_error_handling: false,
-        };
+        let packet = GameProfilePacket::new(game_profile.uuid(), game_profile.username());
         client.send_packet(packet).await;
     }
 

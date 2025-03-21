@@ -94,7 +94,7 @@ pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
 
     let packet = LoginPacket {
         registry_codec,
-        dimension,
+        v1_16_dimension_codec: dimension,
         ..Default::default()
     };
     client.send_packet(packet).await;
