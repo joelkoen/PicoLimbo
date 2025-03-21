@@ -1,6 +1,53 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, LitInt, LitStr};
+use syn::{parse::Parse, parse_macro_input, DeriveInput, LitInt, LitStr, Token};
+
+struct PvnAttribute {
+    pvn: LitInt,
+    reports: Option<LitStr>,
+    data: Option<LitStr>,
+}
+
+impl Parse for PvnAttribute {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        // First parse the required integer argument.
+        let pvn = input.parse::<LitInt>()?;
+
+        // Prepare optional fields.
+        let mut reports: Option<LitStr> = None;
+        let mut data: Option<LitStr> = None;
+
+        // Parse additional fields regardless of order.
+        while input.peek(Token![,]) {
+            // Consume the comma.
+            let _comma: Token![,] = input.parse()?;
+
+            // Parse the field name.
+            let ident: syn::Ident = input.parse()?;
+            input.parse::<Token![=]>()?;
+
+            // Match the field name and assign the value.
+            if ident == "reports" {
+                if reports.is_some() {
+                    return Err(syn::Error::new(ident.span(), "duplicate `reports` field"));
+                }
+                reports = Some(input.parse::<LitStr>()?);
+            } else if ident == "data" {
+                if data.is_some() {
+                    return Err(syn::Error::new(ident.span(), "duplicate `data` field"));
+                }
+                data = Some(input.parse::<LitStr>()?);
+            } else {
+                return Err(syn::Error::new(
+                    ident.span(),
+                    "expected either `reports` or `data`",
+                ));
+            }
+        }
+
+        Ok(PvnAttribute { pvn, reports, data })
+    }
+}
 
 pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -26,6 +73,8 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
     let mut humanize_arms = Vec::new();
     let mut from_i32_arms = Vec::new();
     let mut version_number_arms = Vec::new();
+    let mut reports_arms = Vec::new();
+    let mut data_arms = Vec::new();
     let mut pvn_values = Vec::new();
 
     // Iterate over all variants of the enum.
@@ -33,18 +82,17 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
         let variant_ident = &variant.ident;
 
         // Look for the #[pvn(...)] attribute.
-        let mut pvn_value: Option<LitInt> = None;
+        let mut pvn_attr: Option<PvnAttribute> = None;
         for attr in &variant.attrs {
             if attr.path().is_ident("pvn") {
-                // Expect the attribute to be in the form: #[pvn(769)]
-                pvn_value = Some(match attr.parse_args::<LitInt>() {
-                    Ok(lit) => lit,
+                pvn_attr = Some(match attr.parse_args::<PvnAttribute>() {
+                    Ok(parsed) => parsed,
                     Err(err) => return err.to_compile_error().into(),
                 });
                 break;
             }
         }
-        let pvn_value = match pvn_value {
+        let pvn_attr = match pvn_attr {
             Some(val) => val,
             None => {
                 return syn::Error::new_spanned(
@@ -57,7 +105,7 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
         };
 
         // Parse the integer literal to an i32.
-        let pvn_int = match pvn_value.base10_parse::<i32>() {
+        let pvn_int = match pvn_attr.pvn.base10_parse::<i32>() {
             Ok(num) => num,
             Err(err) => return err.to_compile_error().into(),
         };
@@ -68,16 +116,16 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
             #enum_ident::#variant_ident => f.write_str(stringify!(#variant_ident))
         });
 
-        // For From<i32>, map the provided integer to the corresponding variant.
+        let pvn_lit = pvn_attr.pvn;
         from_i32_arms.push(quote! {
-            #pvn_value => #enum_ident::#variant_ident
+            #pvn_lit => #enum_ident::#variant_ident
         });
 
-        // For version_number, we return the literal integer.
         version_number_arms.push(quote! {
-            #enum_ident::#variant_ident => #pvn_value
+            #enum_ident::#variant_ident => #pvn_lit
         });
 
+        // For humanize, strip the leading 'V' and replace underscores with dots.
         let variant_name = variant_ident.to_string();
         let humanized = variant_name
             .strip_prefix('V')
@@ -86,6 +134,20 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
         let humanized_lit = LitStr::new(&humanized, variant_ident.span());
         humanize_arms.push(quote! {
             #enum_ident::#variant_ident => #humanized_lit
+        });
+
+        let reports_value = pvn_attr
+            .reports
+            .unwrap_or_else(|| LitStr::new(&variant_ident.to_string(), variant_ident.span()));
+        reports_arms.push(quote! {
+            #enum_ident::#variant_ident => #reports_value
+        });
+
+        let data_value = pvn_attr
+            .data
+            .unwrap_or_else(|| LitStr::new(&variant_ident.to_string(), variant_ident.span()));
+        data_arms.push(quote! {
+            #enum_ident::#variant_ident => #data_value
         });
     }
 
@@ -131,6 +193,18 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
             pub fn humanize(&self) -> &'static str {
                 match self {
                     #(#humanize_arms),*
+                }
+            }
+
+            pub fn reports(&self) -> &'static str {
+                match self {
+                    #(#reports_arms),*
+                }
+            }
+
+            pub fn data(&self) -> &'static str {
+                match self {
+                    #(#data_arms),*
                 }
             }
         }

@@ -79,7 +79,7 @@ impl PacketMap {
         // Not cached yet: compute the file path and load the mapping.
         let file_path = self
             .root_directory
-            .join(protocol_version.to_string())
+            .join(protocol_version.reports())
             .join("reports/packets.json");
         let mapping = Self::load_mapping_from_file(&file_path)?;
         let mapping_arc = Arc::new(mapping);

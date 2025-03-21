@@ -65,7 +65,6 @@ pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
         } else {
             get_registry_codec(client.protocol_version())
         };
-        trace!("{:?}", registry_codec);
 
         let dimension = if (ProtocolVersion::V1_16_2..=ProtocolVersion::V1_18_2)
             .contains(&client.protocol_version())

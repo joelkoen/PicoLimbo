@@ -55,7 +55,6 @@ pub async fn on_custom_query_answer(
             let address = String::decode(buf, &mut index).unwrap_or_default();
             let player_uuid = Uuid::decode(buf, &mut index).unwrap_or_default();
             let player_name = String::decode(buf, &mut index).unwrap_or_default();
-            trace!("{} {} {} {}", is_valid, address, player_uuid, player_name);
 
             let game_profile = GameProfile::new(player_name, player_uuid);
             fire_login_success(client, game_profile).await;
@@ -77,7 +76,6 @@ async fn login_start_velocity(client: SharedClient, _packet: LoginStartPacket) {
         client.set_velocity_login_message_id(message_id);
         CustomQueryPacket::velocity_info_channel(message_id)
     };
-    trace!("Sending custom query answer packet {:?}", packet);
     client.send_packet(packet).await;
 }
 
@@ -86,7 +84,6 @@ async fn fire_login_success(client: SharedClient, game_profile: GameProfile) {
 
     if client.protocol_version() >= ProtocolVersion::V1_21_2 {
         let packet = LoginSuccessPacket::new(game_profile.uuid(), game_profile.username());
-        trace!("sending login success: {:?}", packet);
         client.send_packet(packet).await;
     } else {
         let packet = GameProfilePacket::new(game_profile.uuid(), game_profile.username());
