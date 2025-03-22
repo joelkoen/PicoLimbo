@@ -3,7 +3,7 @@
 > [!WARNING]
 > This software is highly experimental. Use at your own risks and report any bugs by submitting an issue on GitHub.
 
-An attempt at writing a lightweight Minecraft server from scratch in Rust. Currently, supports 1.15 up to 1.21.4.
+An attempt at writing a lightweight Minecraft server from scratch in Rust. Currently, supports 1.7 up to 1.21.4.
 
 ## Introduction
 
@@ -48,6 +48,7 @@ pico_limbo --address 127.0.0.1:25565 --secret-key MyForwardingSecret
 - [Limbo](https://github.com/LOOHP/Limbo) - Supports only one version of the game at a time
 - [NanoLimbo](https://github.com/Nan1t/NanoLimbo)
 - [TyphoonLimbo](https://github.com/TyphoonMC/TyphoonLimbo) - No longer active
+- [LiteLimbo](https://github.com/ThomasOM/LiteLimbo) - No longer active
 
 ## Contributing
 

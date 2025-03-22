@@ -1,6 +1,9 @@
 use crate::play::data::chunk_section::ChunkSection;
 use minecraft_protocol::prelude::*;
 
+/// This packet is only mandatory for versions above 1.20.3,
+/// thus the packet is only implemented to work on versions after 1.20.3.
+/// The GameEventPacket must be sent before sending this one.
 #[derive(Debug, PacketOut)]
 #[packet_id("play/clientbound/minecraft:level_chunk_with_light")]
 pub struct ChunkDataAndUpdateLightPacket {

@@ -12,7 +12,8 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tracing::{debug, error};
+use tracing::field::debug;
+use tracing::{debug, error, trace};
 
 pub struct Client {
     state: State,

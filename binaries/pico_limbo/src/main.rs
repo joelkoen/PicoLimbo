@@ -5,6 +5,7 @@ mod velocity;
 use crate::cli::Cli;
 use crate::handlers::handshake::on_handshake;
 use crate::handlers::login::{on_custom_query_answer, on_login_acknowledged, on_login_start};
+use crate::handlers::play::on_player_position;
 use crate::handlers::status::{on_ping_request, on_status_request};
 use clap::Parser;
 use minecraft_server::server::Server;
@@ -31,6 +32,7 @@ async fn main() {
         .on(on_login_start)
         .on(on_login_acknowledged)
         .on(on_custom_query_answer)
+        .on(on_player_position)
         .run()
         .await;
 }

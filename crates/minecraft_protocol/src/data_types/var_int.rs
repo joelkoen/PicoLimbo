@@ -89,6 +89,12 @@ impl From<u32> for VarInt {
     }
 }
 
+impl From<i64> for VarInt {
+    fn from(value: i64) -> Self {
+        Self::new(value as i32)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

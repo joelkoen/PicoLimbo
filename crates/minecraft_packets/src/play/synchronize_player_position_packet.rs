@@ -23,9 +23,11 @@ pub struct SynchronizePlayerPositionPacket {
     /// Pitch = 0x10,
     #[pvn(768..)]
     pub v_1_21_2_flags: i32,
-    #[pvn(..768)]
+    #[pvn(47..768)]
     pub flags: u8,
-    #[pvn(..768)]
+    #[pvn(..47)]
+    pub on_ground: bool,
+    #[pvn(107..768)]
     pub teleport_id: VarInt,
     /// True if the player should dismount their vehicle.
     #[pvn(755..762)]
@@ -49,6 +51,7 @@ impl Default for SynchronizePlayerPositionPacket {
             flags: 0,
             teleport_id: VarInt::default(),
             dismount_vehicle: false,
+            on_ground: false,
         }
     }
 }

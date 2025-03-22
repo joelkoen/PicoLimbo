@@ -1,5 +1,6 @@
 use minecraft_protocol::prelude::*;
 
+/// This is the most important packet, good luck.
 #[derive(PacketOut)]
 #[packet_id("play/clientbound/minecraft:login")]
 pub struct LoginPacket {
@@ -27,8 +28,10 @@ pub struct LoginPacket {
     #[pvn(735..764)]
     pub v1_16_world_name: Identifier,
     /// -1: Nether, 0: Overworld, 1: End; also, note that this is not a VarInt but instead a regular int.
-    #[pvn(..735)]
-    pub dimension: i32,
+    #[pvn(108..735)]
+    pub v1_9_1_dimension: i32,
+    #[pvn(..108)]
+    pub dimension: i8,
     /// First 8 bytes of the SHA-256 hash of the world's seed. Used client side for biome noise
     #[pvn(573..764)]
     pub hashed_seed: i64,
@@ -50,6 +53,7 @@ pub struct LoginPacket {
     #[pvn(757..)]
     pub simulation_distance: VarInt,
     /// If true, a Notchian client shows reduced information on the debug screen. For servers in development, this should almost always be false.
+    #[pvn(47..)]
     pub reduced_debug_info: bool,
     /// Set to false when the doImmediateRespawn gamerule is true.
     #[pvn(573..)]
@@ -122,6 +126,7 @@ impl Default for LoginPacket {
             v1_19_dimension_type: overworld.clone(),
             v1_16_dimension_codec: Nbt::End,
             v1_16_world_name: overworld.clone(),
+            v1_9_1_dimension: 0,
             dimension: 0,
             hashed_seed: 0,
             v_1_20_2_game_mode: 3,
@@ -147,9 +152,8 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
-    #[test]
-    fn login_packet() {
-        let packet_snapshots = HashMap::from([
+    fn expected_snapshots() -> HashMap<u32, Vec<u8>> {
+        HashMap::from([
             (
                 769,
                 vec![
@@ -390,9 +394,97 @@ mod tests {
                     0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
                 ],
             ),
-        ]);
+            (
+                401,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                393,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                340,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                338,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                335,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                316,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                315,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                210,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                110,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                109,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                108,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                107,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                47,
+                vec![
+                    0, 0, 0, 0, 3, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116, 0,
+                ],
+            ),
+            (
+                5,
+                vec![0, 0, 0, 0, 3, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116],
+            ),
+            (
+                4,
+                vec![0, 0, 0, 0, 3, 0, 0, 1, 7, 100, 101, 102, 97, 117, 108, 116],
+            ),
+        ])
+    }
 
-        let packet = LoginPacket {
+    fn create_packet() -> LoginPacket {
+        LoginPacket {
             registry_codec: Nbt::String {
                 name: Some("Hello".to_string()),
                 value: "World".to_string(),
@@ -402,11 +494,17 @@ mod tests {
                 value: "World".to_string(),
             },
             ..LoginPacket::default()
-        };
+        }
+    }
 
-        for (version, snapshot) in packet_snapshots {
+    #[test]
+    fn login_packet() {
+        let snapshots = expected_snapshots();
+        let packet = create_packet();
+
+        for (version, expected_bytes) in snapshots {
             let bytes = packet.encode(version).unwrap();
-            assert_eq!(bytes, snapshot);
+            assert_eq!(bytes, expected_bytes, "Mismatch for version {}", version);
         }
     }
 }

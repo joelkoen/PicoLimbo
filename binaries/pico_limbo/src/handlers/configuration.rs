@@ -55,8 +55,6 @@ pub async fn send_configuration_packets(mut client: MutexGuard<'_, Client>) {
 
 /// Switch to the Play state and send required packets to spawn the player in the world
 pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
-    client.update_state(State::Play);
-
     let (registry_codec, dimension) = if client.protocol_version() <= ProtocolVersion::V1_20_2 {
         let registry_codec = if client.protocol_version() == ProtocolVersion::V1_16
             || client.protocol_version() == ProtocolVersion::V1_16_1
@@ -118,5 +116,8 @@ pub async fn send_play_packets(mut client: MutexGuard<'_, Client>) {
         client.send_packet(packet).await;
     }
 
-    client.send_keep_alive().await;
+    if client.protocol_version() >= ProtocolVersion::V1_8 {
+        client.update_state(State::Play);
+        client.send_keep_alive().await;
+    }
 }

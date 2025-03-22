@@ -1,6 +1,7 @@
 use crate::login::login_success_packet::Property;
 use minecraft_protocol::prelude::*;
 
+/// For versions after 1.21.2 (included), use the GameProfilePacket.
 #[derive(Debug, PacketOut)]
 #[packet_id("login/clientbound/minecraft:game_profile")]
 pub struct GameProfilePacket {

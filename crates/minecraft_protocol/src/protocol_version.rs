@@ -83,6 +83,38 @@ pub enum ProtocolVersion {
     V1_13_1,
     #[pvn(393)]
     V1_13,
+
+    #[pvn(340, reports = "V1_12_1")]
+    V1_12_2,
+    #[pvn(338)]
+    V1_12_1,
+    #[pvn(335)]
+    V1_12,
+
+    #[pvn(316, reports = "V1_11")]
+    V1_11_1,
+    #[pvn(315)]
+    V1_11,
+
+    #[pvn(210)]
+    V1_10,
+
+    #[pvn(110, reports = "V1_9")]
+    V1_9_3,
+    #[pvn(109, reports = "V1_9")]
+    V1_9_2,
+    #[pvn(108, reports = "V1_9")]
+    V1_9_1,
+    #[pvn(107)]
+    V1_9,
+
+    #[pvn(47)]
+    V1_8,
+
+    #[pvn(5, reports = "V1_7_2")]
+    V1_7_6,
+    #[pvn(4)]
+    V1_7_2,
 }
 
 impl PartialEq for ProtocolVersion {
