@@ -29,6 +29,7 @@ pub enum VecDecodeError<T: DecodePacketField> {
     DecodeError(T::Error),
 }
 
+/// Decoding a vec u8 implies reading elements until the buffer is exhausted.
 impl DecodePacketField for Vec<u8> {
     type Error = VecDecodeError<u8>;
 

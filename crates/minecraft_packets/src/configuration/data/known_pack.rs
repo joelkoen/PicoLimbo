@@ -22,7 +22,7 @@ impl Default for KnownPack {
 #[error("error while decoding a packet; error={0}")]
 pub enum DecodePacketError {
     #[error("error while decoding a string")]
-    String(#[from] StringDecodingError),
+    String(#[from] DecodeStringError),
 }
 
 impl DecodePacketField for KnownPack {

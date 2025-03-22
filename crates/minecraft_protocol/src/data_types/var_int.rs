@@ -151,4 +151,17 @@ mod tests {
             assert_eq!(bytes, expected_bytes);
         }
     }
+
+    #[test]
+    fn test_decode_var_int_insufficient_bytes() {
+        // Given
+        let bytes = vec![];
+        let mut index = 0;
+
+        // When
+        let result = VarInt::decode(&bytes, &mut index);
+
+        // Then
+        assert!(result.is_err());
+    }
 }

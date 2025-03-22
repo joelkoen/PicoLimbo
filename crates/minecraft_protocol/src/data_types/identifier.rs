@@ -1,4 +1,4 @@
-use crate::data_types::string::StringDecodingError;
+use crate::data_types::string::DecodeStringError;
 use crate::prelude::EncodePacketField;
 use crate::traits::decode_packet_field::DecodePacketField;
 use std::fmt::Display;
@@ -46,7 +46,7 @@ impl Display for Identifier {
 }
 
 impl DecodePacketField for Identifier {
-    type Error = StringDecodingError;
+    type Error = DecodeStringError;
 
     /// Decodes an identifier.
     /// An identifier is a String with a namespace and a path separated by a colon.

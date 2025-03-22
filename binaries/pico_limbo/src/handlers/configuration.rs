@@ -17,7 +17,6 @@ use minecraft_protocol::protocol_version::ProtocolVersion;
 use minecraft_protocol::state::State;
 use minecraft_server::client::Client;
 use tokio::sync::MutexGuard;
-use tracing::trace;
 
 pub async fn send_configuration_packets(mut client: MutexGuard<'_, Client>) {
     // Send Server Brand

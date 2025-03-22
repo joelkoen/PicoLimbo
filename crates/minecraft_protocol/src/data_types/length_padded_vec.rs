@@ -5,7 +5,44 @@ use thiserror::Error;
 
 /// A wrapper around a Vec that adds the length as a VarInt before the Vec itself.
 #[derive(Debug, Clone, Default)]
-pub struct LengthPaddedVec<T>(pub Vec<T>);
+pub struct LengthPaddedVec<T>(Vec<T>);
+
+impl<T> LengthPaddedVec<T> {
+    pub fn new(data: Vec<T>) -> Self {
+        Self(data)
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<T> IntoIterator for LengthPaddedVec<T> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a LengthPaddedVec<T> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut LengthPaddedVec<T> {
+    type Item = &'a mut T;
+    type IntoIter = std::slice::IterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
+    }
+}
 
 #[derive(Error, Debug)]
 pub enum LengthPaddedVecDecodeError<T: DecodePacketField> {
@@ -64,10 +101,7 @@ impl<T> From<Vec<T>> for LengthPaddedVec<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::data_types::length_padded_vec::LengthPaddedVec;
-    use crate::data_types::var_int::VarInt;
-    use crate::prelude::EncodePacketField;
-    use crate::traits::decode_packet_field::DecodePacketField;
+    use super::*;
 
     #[test]
     fn test_vec_decode() {
@@ -78,6 +112,15 @@ mod tests {
         assert_eq!(vec.0[0].value(), 1);
         assert_eq!(vec.0[1].value(), 2);
         assert_eq!(index, 3);
+    }
+
+    #[test]
+    fn test_vec_decode_length_no_data() {
+        let bytes = vec![0x02];
+        let mut index = 0;
+        let result = LengthPaddedVec::<VarInt>::decode(&bytes, &mut index);
+        assert!(result.is_err());
+        assert_eq!(index, 1);
     }
 
     #[test]

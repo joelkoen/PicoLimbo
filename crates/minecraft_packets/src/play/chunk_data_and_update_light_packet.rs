@@ -80,9 +80,9 @@ impl EncodePacketField for Light {
     type Error = std::convert::Infallible;
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
-        let size = VarInt::new(self.block_light_array.0.len() as i32);
+        let size = VarInt::new(self.block_light_array.len() as i32);
         size.encode(bytes)?;
-        for &value in &self.block_light_array.0 {
+        for &value in &self.block_light_array {
             bytes.push(value as u8);
         }
         Ok(())

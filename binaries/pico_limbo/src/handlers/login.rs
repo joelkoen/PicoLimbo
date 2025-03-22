@@ -14,7 +14,7 @@ use minecraft_protocol::state::State;
 use minecraft_server::client::SharedClient;
 use minecraft_server::game_profile::GameProfile;
 use rand::Rng;
-use tracing::{info, trace};
+use tracing::info;
 
 pub async fn on_login_start(state: ServerState, client: SharedClient, packet: LoginStartPacket) {
     if state.is_modern_forwarding() {
@@ -52,7 +52,7 @@ pub async fn on_custom_query_answer(
         let is_valid =
             check_velocity_key_integrity(buf, state.secret_key(), &mut index).unwrap_or_default();
         if is_valid {
-            let address = String::decode(buf, &mut index).unwrap_or_default();
+            let _address = String::decode(buf, &mut index).unwrap_or_default();
             let player_uuid = Uuid::decode(buf, &mut index).unwrap_or_default();
             let player_name = String::decode(buf, &mut index).unwrap_or_default();
 

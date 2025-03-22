@@ -1,5 +1,6 @@
+use crate::data_types::number::DecodeNumberError;
 use crate::prelude::EncodePacketField;
-use crate::traits::decode_packet_field::{DecodePacketField, DeserializeNumberError};
+use crate::traits::decode_packet_field::DecodePacketField;
 
 #[derive(Debug, Default)]
 pub struct Position {
@@ -15,7 +16,7 @@ impl Position {
 }
 
 impl DecodePacketField for Position {
-    type Error = DeserializeNumberError;
+    type Error = DecodeNumberError;
 
     fn decode(bytes: &[u8], index: &mut usize) -> Result<Self, Self::Error> {
         let val = i64::decode(bytes, index)?;

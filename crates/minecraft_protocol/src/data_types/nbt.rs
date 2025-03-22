@@ -27,8 +27,6 @@ impl EncodePacketField for Nbt {
 
     fn encode(&self, bytes: &mut Vec<u8>) -> Result<(), Self::Error> {
         let nbt_bytes = self.to_bytes();
-        // FIXME: Should send length?
-        // VarInt::new(nbt_bytes.len() as i32).encode(bytes)?;
         bytes.extend_from_slice(&nbt_bytes);
         Ok(())
     }
