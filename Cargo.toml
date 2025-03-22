@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "crates/macros",
-    "crates/nbt",
+    "crates/pico_nbt",
     "crates/minecraft_protocol",
     "crates/packet_serializer",
     "crates/minecraft_packets",

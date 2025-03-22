@@ -4,9 +4,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum NbtEncodeError {
-    #[error("failed to encode nbt; error={0}")]
+    #[error("failed to encode pico_nbt; error={0}")]
     Io(std::io::Error),
-    #[error("failed to encode nbt")]
+    #[error("failed to encode pico_nbt")]
     Infallible,
 }
 

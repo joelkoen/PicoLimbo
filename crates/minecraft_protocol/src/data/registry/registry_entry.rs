@@ -14,7 +14,7 @@ pub struct RegistryEntry {
 pub enum RegistryEntryEncodeError {
     #[error("failed to encode identifier")]
     Identifier,
-    #[error("failed to encode nbt")]
+    #[error("failed to encode pico_nbt")]
     Infallible,
 }
 

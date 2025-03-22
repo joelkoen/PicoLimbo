@@ -8,7 +8,7 @@ macros = { path = "../macros" }
 packet_serializer = { path = "../packet_serializer" }
 thiserror = "2.0"
 uuid = { version = "1.13", features = ["v4"] }
-nbt = { path = "../nbt" }
+nbt = { path = "../pico_nbt" }
 walkdir = "2.5.0"
 serde_json = "1.0"
 serde = "1.0"
