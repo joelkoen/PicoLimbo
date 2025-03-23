@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Version {
@@ -20,18 +21,20 @@ pub struct Players {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Description {
-    pub text: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct StatusResponse {
     pub version: Version,
     pub players: Players,
-    pub description: Description,
+    pub description: Value,
     pub favicon: String,
-    #[serde(alias = "enforcesSecureChat")]
+    #[serde(
+        alias = "enforcesSecureChat",
+        default = "get_default_enforces_secure_chat"
+    )]
     pub enforces_secure_chat: bool,
+}
+
+fn get_default_enforces_secure_chat() -> bool {
+    false
 }
 
 impl StatusResponse {
@@ -41,6 +44,12 @@ impl StatusResponse {
         description_text: &str,
         enforces_secure_chat: bool,
     ) -> Self {
+        let mut description_map = serde_json::Map::new();
+        description_map.insert(
+            "text".to_string(),
+            Value::String(description_text.to_string()),
+        );
+        let description = Value::Object(description_map);
         StatusResponse {
             version: Version {
                 name: version_name.to_string(),
@@ -51,9 +60,7 @@ impl StatusResponse {
                 online: 0,
                 sample: Vec::new(),
             },
-            description: Description {
-                text: description_text.to_string(),
-            },
+            description,
             favicon: String::new(),
             enforces_secure_chat,
         }

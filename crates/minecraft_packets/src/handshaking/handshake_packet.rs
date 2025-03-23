@@ -1,4 +1,5 @@
 use minecraft_protocol::prelude::*;
+use minecraft_protocol::protocol_version::ProtocolVersion;
 
 #[derive(Debug, Clone, PacketIn, PacketOut)]
 #[packet_id("handshake/serverbound/minecraft:intention")]
@@ -8,6 +9,17 @@ pub struct HandshakePacket {
     pub port: u16,
     /// 1: Status, 2: Login, 3: Transfer
     pub next_state: VarInt,
+}
+
+impl HandshakePacket {
+    pub fn status(protocol_version: ProtocolVersion, hostname: String, port: u16) -> Self {
+        Self {
+            protocol: protocol_version.version_number().into(),
+            hostname,
+            port,
+            next_state: 1.into(),
+        }
+    }
 }
 
 #[cfg(test)]

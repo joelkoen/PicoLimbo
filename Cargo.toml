@@ -9,5 +9,6 @@ members = [
     "crates/net",
     "crates/minecraft_server",
     "binaries/pico_limbo",
-    "binaries/pico_wake"
+    "binaries/pico_wake",
+    "binaries/pico_ping",
 ]

@@ -71,6 +71,7 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
     // Prepare vectors for the match arms for each generated implementation.
     let mut display_arms = Vec::new();
     let mut humanize_arms = Vec::new();
+    let mut from_str_arms = Vec::new();
     let mut from_i32_arms = Vec::new();
     let mut version_number_arms = Vec::new();
     let mut reports_arms = Vec::new();
@@ -136,6 +137,10 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
             #enum_ident::#variant_ident => #humanized_lit
         });
 
+        from_str_arms.push(quote! {
+            #humanized_lit => Ok(#enum_ident::#variant_ident)
+        });
+
         let reports_value = pvn_attr
             .reports
             .unwrap_or_else(|| LitStr::new(&variant_ident.to_string(), variant_ident.span()));
@@ -183,6 +188,17 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl FromStr for ProtocolVersion {
+            type Err = std::io::Error;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    #(#from_str_arms),*,
+                    _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid version")),
+                }
+            }
+        }
+
         impl #enum_ident {
             pub fn version_number(&self) -> u32 {
                 match self {
@@ -206,6 +222,10 @@ pub fn expand_protocol_version_derive(input: TokenStream) -> TokenStream {
                 match self {
                     #(#data_arms),*
                 }
+            }
+
+            pub fn latest() -> Self {
+                #enum_ident::#max_variant_ident
             }
         }
     };

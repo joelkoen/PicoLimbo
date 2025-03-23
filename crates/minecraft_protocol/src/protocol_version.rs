@@ -1,5 +1,6 @@
 use macros::Pvn;
 use std::cmp::Ordering;
+use std::str::FromStr;
 
 #[derive(Default, Clone, Debug, Pvn, Hash)]
 pub enum ProtocolVersion {
