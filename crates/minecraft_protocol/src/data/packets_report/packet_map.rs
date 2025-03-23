@@ -56,7 +56,7 @@ impl PacketMap {
         let prefix = format!("{}/serverbound", state);
         Ok(mapping
             .iter()
-            .find(|(key, &id)| id == packet_id && key.starts_with(&prefix))
+            .find(|&(ref key, &id)| id == packet_id && key.starts_with(&prefix))
             .map(|(key, _)| key.clone()))
     }
 
