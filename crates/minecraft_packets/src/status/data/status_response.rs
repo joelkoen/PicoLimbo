@@ -17,7 +17,7 @@ pub struct PlayerSample {
 pub struct Players {
     pub max: u32,
     pub online: u32,
-    pub sample: Vec<PlayerSample>,
+    pub sample: Option<Vec<PlayerSample>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,7 +25,7 @@ pub struct StatusResponse {
     pub version: Version,
     pub players: Players,
     pub description: Value,
-    pub favicon: String,
+    pub favicon: Option<String>,
     #[serde(
         alias = "enforcesSecureChat",
         default = "get_default_enforces_secure_chat"
@@ -58,10 +58,10 @@ impl StatusResponse {
             players: Players {
                 max: 1,
                 online: 0,
-                sample: Vec::new(),
+                sample: None,
             },
             description,
-            favicon: String::new(),
+            favicon: None,
             enforces_secure_chat,
         }
     }

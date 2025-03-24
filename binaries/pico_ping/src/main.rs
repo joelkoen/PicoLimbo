@@ -59,20 +59,19 @@ async fn main() -> anyhow::Result<()> {
             "Version: {} (protocol {})",
             status_response.version.name, status_response.version.protocol
         );
-        let players_sample = if status_response.players.sample.is_empty() {
-            "Player list is empty".to_string()
-        } else {
-            let player_names = status_response
-                .players
-                .sample
+
+        let player_sample = match status_response.players.sample {
+            Some(ref sample) if !sample.is_empty() => sample
                 .iter()
-                .map(|player_sample| player_sample.name.clone())
-                .collect::<Vec<_>>();
-            player_names.join(", ")
+                .map(|p| p.name.clone())
+                .collect::<Vec<_>>()
+                .join(", "),
+            _ => "Player list is empty".to_string(),
         };
+
         println!(
             "Players ({}/{}): {}",
-            status_response.players.online, status_response.players.max, players_sample
+            status_response.players.online, status_response.players.max, player_sample
         );
     }
 
